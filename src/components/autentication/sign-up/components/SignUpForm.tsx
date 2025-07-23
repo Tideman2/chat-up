@@ -1,12 +1,16 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Input from "../../components/Input";
+import useAuth from "../../../../hooks/useAuth";
+import StyledLink from "../../components/StyledLink";
 
 type FormData = {
   email: string;
   name: string;
-  password: number;
+  passWord: number;
   confirmPassword: number;
 };
 
@@ -17,10 +21,34 @@ export default function SignUpForm() {
     reset,
     formState: { errors },
   } = useForm<FormData>();
+  const { signup } = useAuth();
+  const [error, setError] = useState<boolean | string>(false);
+  let navigate = useNavigate();
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("Submitted:", data);
-    reset(); // Resets the form to default values (empty here)
+    if (data.passWord !== data.confirmPassword) {
+      setError("Password is diffrent from Confirm-password");
+      setTimeout(() => {
+        setError(false);
+      }, 3000);
+    } else {
+      // Removing confirmPassword because the payload type excludes it
+      const { confirmPassword, ...rest } = data;
+      if (signup) {
+        signup({ ...rest, passWord: String(rest.passWord) })
+          .then((result) => {
+            navigate("/app");
+            reset();
+          })
+          .catch((err) => {
+            setError(err.message);
+            setTimeout(() => {
+              setError(false);
+            }, 3000);
+          });
+      }
+    }
   };
 
   return (
@@ -54,7 +82,7 @@ export default function SignUpForm() {
       />
 
       <Input
-        name="password"
+        name="passWord"
         control={control}
         label="Password"
         errors={errors}
@@ -96,7 +124,19 @@ export default function SignUpForm() {
         <Button variant="contained" type="submit">
           Sign Up
         </Button>
+        <StyledLink to={"/authentication/login"}>login</StyledLink>
       </Box>
+
+      {error && (
+        <Typography
+          sx={{
+            color: (theme) => theme.palette.error.main,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </Typography>
+      )}
     </Box>
   );
 }

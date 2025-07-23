@@ -59,6 +59,11 @@ const theme = createTheme({
       fontSize: 12,
       color: "#4F4F4F", // Timestamps or less important text
     },
+    textTypo: {
+      fontSize: "1rem",
+      fontWeight: 500,
+      color: "#1A1C1F",
+    },
   },
 });
 

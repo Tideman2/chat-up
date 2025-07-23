@@ -1,4 +1,4 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 
 import Input from "../../components/Input";
@@ -29,6 +29,23 @@ export default function ResetPasswordForm() {
       autoComplete="off"
       onSubmit={handleSubmit(onSubmit)}
     >
+      <Box
+        sx={{
+          p: 2,
+          border: "1px dashed grey",
+          m: 2,
+          height: "fit-content",
+          width: "fit-content",
+        }}
+        alignItems={"center"}
+      >
+        <Typography textAlign={"center"} variant="body1">
+          To reset your password
+        </Typography>
+        <Typography variant="body1">
+          fill in the gmail used to create the account
+        </Typography>
+      </Box>
       <Input
         name="email"
         control={control}

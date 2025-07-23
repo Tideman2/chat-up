@@ -1,12 +1,15 @@
-import { Box, Button } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import Input from "../../components/Input";
 import StyledLink from "../../components/StyledLink";
+import useAuth from "../../../../hooks/useAuth";
 
 type FormData = {
   name: string;
-  password: number;
+  passWord: number;
 };
 
 export default function LoginForm() {
@@ -16,10 +19,27 @@ export default function LoginForm() {
     reset,
     formState: { errors },
   } = useForm<FormData>();
+  let { login } = useAuth();
+  let navigate = useNavigate();
+  const [error, setError] = useState<boolean>(false);
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("Submitted:", data);
-    reset(); // Resets the form to default values (empty here)
+
+    if (login) {
+      login({ name: data.name, passWord: String(data.passWord) })
+        .then((value) => {
+          navigate("/app");
+          reset(); // Resets the form to default values (empty here)
+        })
+        .catch((err) => {
+          console.log("false block", err);
+          setError(err.message);
+          setTimeout(() => {
+            setError(false);
+          }, 3000);
+        });
+    }
   };
 
   return (
@@ -40,7 +60,7 @@ export default function LoginForm() {
       />
 
       <Input
-        name="password"
+        name="passWord"
         control={control}
         label="Password"
         errors={errors}
@@ -68,6 +88,16 @@ export default function LoginForm() {
           Forgot password?
         </StyledLink>
       </Box>
+      {error && (
+        <Typography
+          sx={{
+            color: (theme) => theme.palette.error.main,
+            textAlign: "center",
+          }}
+        >
+          {error}
+        </Typography>
+      )}
     </Box>
   );
 }

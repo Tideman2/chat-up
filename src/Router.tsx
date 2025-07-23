@@ -11,6 +11,7 @@ const Router = createBrowserRouter([
     path: "/",
     element: <Navigate to="/authentication/login" replace={true} />,
   },
+
   {
     path: "/authentication",
     element: <AutenticationLayout />,

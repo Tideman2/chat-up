@@ -5,12 +5,15 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 
 import Router from "./Router";
 import theme from "./config/theme";
+import { UserContextProvider } from "./contexts/autentication-context/UserContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <RouterProvider router={Router} />
+      <UserContextProvider>
+        <CssBaseline />
+        <RouterProvider router={Router} />
+      </UserContextProvider>
     </ThemeProvider>
   </StrictMode>
 );
