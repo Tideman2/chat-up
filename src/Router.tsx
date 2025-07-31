@@ -1,17 +1,18 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import App from "./App";
 import Login from "./components/autentication/login/Login";
 import SignUp from "./components/autentication/sign-up/SignUp";
 import AutenticationLayout from "./components/autentication/AutenticationLayout";
 import ResetPassword from "./components/autentication/reset-password/ResetPassword";
+import DashBoardLayout from "./components/dashboard/DashboardLayout";
+
+import Chats from "./pages/Chat/Chats";
 
 const Router = createBrowserRouter([
   {
     path: "/",
     element: <Navigate to="/authentication/login" replace={true} />,
   },
-
   {
     path: "/authentication",
     element: <AutenticationLayout />,
@@ -38,7 +39,13 @@ const Router = createBrowserRouter([
 
   {
     path: "/app",
-    element: <App />,
+    element: <DashBoardLayout />,
+    children: [
+      {
+        path: "/app/chat",
+        element: <Chats />,
+      },
+    ],
   },
 ]);
 

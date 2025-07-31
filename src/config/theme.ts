@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material";
+import { lighten } from "@mui/material";
 
 const theme = createTheme({
   components: {
@@ -29,7 +30,13 @@ const theme = createTheme({
     // 🪵 Used for app background
     background: {
       default: "#ECE5DD",
-      paper: "#ffffff", // For cards, chat bubbles
+      paper: "#ffffff",
+      // For cards, chat bubbles
+    },
+
+    link: {
+      active: "#B3B3B3",
+      hover: lighten("#B3B3B3", 0.3),
     },
 
     // 🖊️ Used for most text
