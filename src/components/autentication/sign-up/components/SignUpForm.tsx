@@ -1,17 +1,18 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Input from "../../components/Input";
 import useAuth from "../../../../hooks/useAuth";
 import StyledLink from "../../components/StyledLink";
+import { useAuthSocket } from "../../../../hooks/socket/useAuthSocket";
 
 type FormData = {
   email: string;
   name: string;
-  passWord: number;
-  confirmPassword: number;
+  password: string;
+  confirmPassword: string;
 };
 
 export default function SignUpForm() {
@@ -21,13 +22,25 @@ export default function SignUpForm() {
     reset,
     formState: { errors },
   } = useForm<FormData>();
-  const { signup } = useAuth();
-  const [error, setError] = useState<boolean | string>(false);
   let navigate = useNavigate();
+  const { signup } = useAuth();
+
+  let handleRegisterSuccess = useCallback(
+    (data: any) => {
+      const accessToken = data["access-token"];
+      localStorage.setItem("accessToken", accessToken);
+      navigate("/app", { replace: true });
+    },
+    [navigate]
+  );
+
+  const { registerUser } = useAuthSocket(handleRegisterSuccess);
+
+  const [error, setError] = useState<boolean | string>(false);
 
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("Submitted:", data);
-    if (data.passWord !== data.confirmPassword) {
+    if (data.password !== data.confirmPassword) {
       setError("Password is diffrent from Confirm-password");
       setTimeout(() => {
         setError(false);
@@ -35,19 +48,7 @@ export default function SignUpForm() {
     } else {
       // Removing confirmPassword because the payload type excludes it
       const { confirmPassword, ...rest } = data;
-      if (signup) {
-        signup({ ...rest, passWord: String(rest.passWord) })
-          .then((result) => {
-            navigate("/app");
-            reset();
-          })
-          .catch((err) => {
-            setError(err.message);
-            setTimeout(() => {
-              setError(false);
-            }, 3000);
-          });
-      }
+      registerUser(rest);
     }
   };
 
@@ -82,7 +83,7 @@ export default function SignUpForm() {
       />
 
       <Input
-        name="passWord"
+        name="password"
         control={control}
         label="Password"
         errors={errors}

@@ -1,15 +1,16 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 
 import Input from "../../components/Input";
 import StyledLink from "../../components/StyledLink";
 import useAuth from "../../../../hooks/useAuth";
+import { useAuthSocketLogin } from "../../../../hooks/socket/useAuthSocketLogin";
 
 type FormData = {
-  name: string;
-  passWord: number;
+  username: string;
+  password: string;
 };
 
 export default function LoginForm() {
@@ -23,23 +24,21 @@ export default function LoginForm() {
   let navigate = useNavigate();
   const [error, setError] = useState<boolean>(false);
 
+  const handleLoginSuccess = useCallback(
+    (data: any) => {
+      if (data["status-code"] === 201) {
+        let accessToken = data["access-token"];
+        localStorage.setItem("accessToken", accessToken);
+        navigate("/app");
+      }
+    },
+    [navigate]
+  );
+  const { loginUser } = useAuthSocketLogin(handleLoginSuccess);
+
   const onSubmit: SubmitHandler<FormData> = (data) => {
     console.log("Submitted:", data);
-
-    if (login) {
-      login({ name: data.name, passWord: String(data.passWord) })
-        .then((value) => {
-          navigate("/app/chat");
-          reset(); // Resets the form to default values (empty here)
-        })
-        .catch((err) => {
-          console.log("false block", err);
-          setError(err.message);
-          setTimeout(() => {
-            setError(false);
-          }, 3000);
-        });
-    }
+    loginUser(data);
   };
 
   return (
@@ -51,7 +50,7 @@ export default function LoginForm() {
       onSubmit={handleSubmit(onSubmit)}
     >
       <Input
-        name="name"
+        name="username"
         control={control}
         errors={errors}
         rules={{ required: "Name is required" }}
@@ -60,7 +59,7 @@ export default function LoginForm() {
       />
 
       <Input
-        name="passWord"
+        name="password"
         control={control}
         label="Password"
         errors={errors}
