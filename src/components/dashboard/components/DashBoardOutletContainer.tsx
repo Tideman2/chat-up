@@ -16,8 +16,10 @@ export default function DashBoardOutletContainer({
         sx={{
           backgroundColor: theme.palette.background.paper,
         }}
-      ></Grid>
-      <Grid size={7}></Grid>
+      >
+        {content1}
+      </Grid>
+      <Grid size={7}>{content2}</Grid>
     </>
   );
 }

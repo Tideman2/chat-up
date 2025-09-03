@@ -29,7 +29,7 @@ export default function LoginForm() {
     if (login) {
       login({ name: data.name, passWord: String(data.passWord) })
         .then((value) => {
-          navigate("/app");
+          navigate("/app/chat");
           reset(); // Resets the form to default values (empty here)
         })
         .catch((err) => {
