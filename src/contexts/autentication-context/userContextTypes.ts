@@ -1,14 +1,14 @@
 export type userDefaultValue = {
   name: string;
   email: string;
-  passWord: string;
+  userId: string;
   isAuthenticated?: boolean;
 };
 
 export type usersArrayType = {
+  userId: string;
   name: string;
   email: string;
-  passWord: string;
 }[];
 
 export type userAction =
@@ -18,6 +18,10 @@ export type userAction =
     }
   | {
       type: "LOGOUT";
+    }
+  | {
+      type: "SET-USER";
+      payload: { name: string; email: string; userId: string };
     }
   | {
       type: "LOGIN";
@@ -34,5 +38,10 @@ export type userContextType = {
     name: string;
     passWord: string;
   }) => Promise<{ success: boolean; user?: any; message?: string }>;
+  setUser?: (creds: {
+    name: string;
+    email: string;
+    userId: string;
+  }) => Promise<any>;
   logout?: () => void;
 };

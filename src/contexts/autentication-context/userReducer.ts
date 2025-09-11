@@ -3,7 +3,7 @@ import { userDefaultValue, userAction } from "./userContextTypes";
 export let initialState: userDefaultValue = {
   name: "",
   email: "",
-  passWord: "",
+  userId: "",
   isAuthenticated: false,
 };
 
@@ -19,7 +19,12 @@ let userReducer = (
         ...action.payload,
         isAuthenticated: true,
       };
-
+    case "SET-USER":
+      return {
+        ...state,
+        ...action.payload,
+        isAuthenticated: true,
+      };
     case "LOGOUT":
       return {
         ...initialState,

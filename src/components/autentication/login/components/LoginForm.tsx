@@ -20,7 +20,7 @@ export default function LoginForm() {
     reset,
     formState: { errors },
   } = useForm<FormData>();
-  let { login } = useAuth();
+  let { setUser } = useAuth();
   let navigate = useNavigate();
   const [error, setError] = useState<boolean>(false);
 
@@ -29,7 +29,16 @@ export default function LoginForm() {
       if (data["status-code"] === 201) {
         let accessToken = data["access-token"];
         localStorage.setItem("accessToken", accessToken);
-        navigate("/app");
+        let userData = data["user-info"];
+        let { id: userId, username: name, email } = userData;
+        console.log({ userId, name, email });
+        let cred = { userId, name, email };
+        if (cred) {
+          // setUser(cred);
+        }
+        // navigate("/app");
+      } else {
+        console.log(data);
       }
     },
     [navigate]
