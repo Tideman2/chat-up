@@ -20,95 +20,97 @@ let DashBoardRoot = styled(Grid)(({ theme }) => {
 export default function DashBoardLayout() {
   return (
     <DashBoardRoot container>
-      <Grid
-        size={1}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "space-between",
-          height: "100%",
-          width: "auto",
-        }}
-      >
-        <Stack spacing={1} padding={1}>
-          <DashBoardLink
-            linkIcon={
-              <ChatIcon
-                sx={{
-                  color: (theme) => theme.palette.text.primary,
-                  borderRadius: "50%",
-                  fontSize: 24,
-                }}
-              />
-            }
-            path="/app/chat"
-          />
+      <Grid size={0.6}>
+        <Box
+          sx={{
+            position: "fixed",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            height: "100%",
+            width: "fit-content",
+          }}
+        >
+          <Stack spacing={1} padding={1}>
+            <DashBoardLink
+              linkIcon={
+                <ChatIcon
+                  sx={{
+                    color: (theme) => theme.palette.text.primary,
+                    borderRadius: "50%",
+                    fontSize: 24,
+                  }}
+                />
+              }
+              path="/app/chat"
+            />
 
-          <DashBoardLink
-            path=""
-            linkIcon={
-              <PhoneOutlinedIcon
-                sx={{
-                  color: (theme) => theme.palette.text.primary,
-                  borderRadius: "50%",
-                }}
-              />
-            }
-          />
+            <DashBoardLink
+              path=""
+              linkIcon={
+                <PhoneOutlinedIcon
+                  sx={{
+                    color: (theme) => theme.palette.text.primary,
+                    borderRadius: "50%",
+                  }}
+                />
+              }
+            />
 
-          <DashBoardLink
-            path=""
-            linkIcon={
-              <UpdateOutlinedIcon
-                sx={{
-                  color: (theme) => theme.palette.text.primary,
-                  borderRadius: "50%",
-                }}
-              />
-            }
-          />
+            <DashBoardLink
+              path=""
+              linkIcon={
+                <UpdateOutlinedIcon
+                  sx={{
+                    color: (theme) => theme.palette.text.primary,
+                    borderRadius: "50%",
+                  }}
+                />
+              }
+            />
 
-          <Divider />
+            <Divider />
 
-          <DashBoardLink
-            path=""
-            linkIcon={
-              <ArchiveOutlinedIcon
-                sx={{
-                  color: (theme) => theme.palette.text.primary,
-                  borderRadius: "50%",
-                }}
-              />
-            }
-          />
+            <DashBoardLink
+              path=""
+              linkIcon={
+                <ArchiveOutlinedIcon
+                  sx={{
+                    color: (theme) => theme.palette.text.primary,
+                    borderRadius: "50%",
+                  }}
+                />
+              }
+            />
 
-          <DashBoardLink
-            path=""
-            linkIcon={
-              <StarBorderOutlinedIcon
-                sx={{
-                  color: (theme) => theme.palette.text.primary,
-                  borderRadius: "50%",
-                }}
-              />
-            }
-          />
+            <DashBoardLink
+              path=""
+              linkIcon={
+                <StarBorderOutlinedIcon
+                  sx={{
+                    color: (theme) => theme.palette.text.primary,
+                    borderRadius: "50%",
+                  }}
+                />
+              }
+            />
 
-          <Divider />
-        </Stack>
+            <Divider />
+          </Stack>
 
-        <Box padding={1} sx={{ marginBottom: "10px" }}>
-          <DashBoardLink
-            path=""
-            linkIcon={
-              <SettingsOutlinedIcon
-                sx={{
-                  color: (theme) => theme.palette.text.primary,
-                  borderRadius: "50%",
-                }}
-              />
-            }
-          />
+          <Box padding={1} sx={{ marginBottom: "10px" }}>
+            <DashBoardLink
+              path=""
+              linkIcon={
+                <SettingsOutlinedIcon
+                  sx={{
+                    color: (theme) => theme.palette.text.primary,
+                    borderRadius: "50%",
+                  }}
+                />
+              }
+            />
+          </Box>
         </Box>
       </Grid>
       <Outlet></Outlet>

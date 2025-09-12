@@ -25,18 +25,19 @@ export default function LoginForm() {
   const [error, setError] = useState<boolean>(false);
 
   const handleLoginSuccess = useCallback(
+    //stores to token to local storage
+    //prepare user data and add to context
+    //re-direct user to app
     (data: any) => {
       if (data["status-code"] === 201) {
-        let accessToken = data["access-token"];
-        localStorage.setItem("accessToken", accessToken);
-        let userData = data["user-info"];
-        let { id: userId, username: name, email } = userData;
+        localStorage.setItem("accessToken", data["access-token"]);
+        let { id: userId, username: name, email } = data["user-info"];
         console.log({ userId, name, email });
-        let cred = { userId, name, email };
-        if (cred) {
-          // setUser(cred);
+        let userCredentials = { userId, name, email };
+        if (setUser) {
+          setUser(userCredentials);
         }
-        // navigate("/app");
+        navigate("/app");
       } else {
         console.log(data);
       }
