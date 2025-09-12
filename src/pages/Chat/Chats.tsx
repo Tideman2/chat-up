@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 
 import ChatTextBox from "../../components/ChatTextBox";
-import { BASEURL } from "../../utils/api";
+import { BASEURL, checkIfTokenHasExpired } from "../../utils/api";
+import useAuth from "../../hooks/useAuth";
 import DashBoardOutletContainer from "../../components/dashboard/components/DashBoardOutletContainer";
 import { Box } from "@mui/material";
 
@@ -14,12 +15,16 @@ interface User {
 // this component will house all friends that can be messaged
 let ChatsContainer = () => {
   let [users, setUsers] = useState<User[]>([]);
+  let { state } = useAuth();
+  let { name, userId } = state;
 
   let handleFectchUsers = useCallback(
     //fetch users to show as chat mate
     //Add users to context
     async function fecthAllUsers() {
       try {
+        checkIfTokenHasExpired({ username: name, userId });
+        console.log(state);
         let url = BASEURL + "/user/get_users";
         let accessToken = localStorage.getItem("accessToken");
         console.log(accessToken);
@@ -53,7 +58,7 @@ let ChatsContainer = () => {
 
   return (
     <Box>
-      <h3>Friends</h3>
+      <h3 style={{ marginLeft: "10px" }}>Friends</h3>
       <Box
         sx={{
           display: "flex",

@@ -1,9 +1,9 @@
+import { Email } from "@mui/icons-material";
 import {
   userAction,
   userDefaultValue,
   usersArrayType,
 } from "../userContextTypes";
-import { checkIfUserInfoInStorage } from "./storage";
 
 // export function signUpUser(dispatch: React.Dispatch<userAction>) {
 //   return async (newUserData: userDefaultValue) => {
@@ -57,6 +57,7 @@ export function setUserDataToContext(dispatch: React.Dispatch<userAction>) {
     userId: string;
     name: string;
   }) => {
+    console.log(credentials.email, credentials.userId);
     dispatch({ type: "SET-USER", payload: credentials });
   };
 }

@@ -25,12 +25,27 @@ export default function LoginForm() {
   const [error, setError] = useState<boolean>(false);
 
   const handleLoginSuccess = useCallback(
-    //stores to token to local storage
+    //check if token is in localStorage and set tokenExpiration time
     //prepare user data and add to context
     //re-direct user to app
+
     (data: any) => {
       if (data["status-code"] === 201) {
-        localStorage.setItem("accessToken", data["access-token"]);
+        const now = Date.now(); // current time in ms
+        const tokenExpirationTime = now + 1800 * 1000;
+        console.log(tokenExpirationTime);
+        console.log(data["access-token"]);
+        if (!localStorage.getItem("tokenExpiresIn")) {
+          localStorage.setItem(
+            "tokenExpiresIn",
+            JSON.stringify(tokenExpirationTime)
+          );
+          localStorage.setItem(
+            "accessToken",
+            JSON.stringify(data["access-token"])
+          );
+        }
+
         let { id: userId, username: name, email } = data["user-info"];
         console.log({ userId, name, email });
         let userCredentials = { userId, name, email };

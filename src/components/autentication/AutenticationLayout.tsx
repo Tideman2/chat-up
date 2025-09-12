@@ -5,7 +5,7 @@ import { Container } from "@mui/material";
 
 import { FormWrapper, LogoText } from "./components/AuthWrapper";
 
-const socket = io("http://localhost:5000"); // your Flask server
+const socket = io("http://localhost:5000"); // Flask server
 
 export default function AutenticationLayout() {
   useEffect(() => {
