@@ -7,6 +7,7 @@ import Input from "../../components/Input";
 import StyledLink from "../../components/StyledLink";
 import useAuth from "../../../../hooks/useAuth";
 import { useAuthSocketLogin } from "../../../../hooks/socket/useAuthSocketLogin";
+import { UsbRounded } from "@mui/icons-material";
 
 type FormData = {
   username: string;
@@ -25,7 +26,7 @@ export default function LoginForm() {
   const [error, setError] = useState<boolean>(false);
 
   const handleLoginSuccess = useCallback(
-    //check if token is in localStorage and set tokenExpiration time
+    //Store token in localStorage and set tokenExpiration time
     //prepare user data and add to context
     //re-direct user to app
 
@@ -35,16 +36,15 @@ export default function LoginForm() {
         const tokenExpirationTime = now + 1800 * 1000;
         console.log(tokenExpirationTime);
         console.log(data["access-token"]);
-        if (!localStorage.getItem("tokenExpiresIn")) {
-          localStorage.setItem(
-            "tokenExpiresIn",
-            JSON.stringify(tokenExpirationTime)
-          );
-          localStorage.setItem(
-            "accessToken",
-            JSON.stringify(data["access-token"])
-          );
-        }
+        console.log(localStorage.getItem("accessToken"));
+        localStorage.setItem(
+          "tokenExpiresIn",
+          JSON.stringify(tokenExpirationTime)
+        );
+        localStorage.setItem(
+          "accessToken",
+          JSON.stringify(data["access-token"])
+        );
 
         let { id: userId, username: name, email } = data["user-info"];
         console.log({ userId, name, email });

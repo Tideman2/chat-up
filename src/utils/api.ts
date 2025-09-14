@@ -9,8 +9,14 @@ export let checkIfTokenHasExpired = async (userData: any) => {
   ) {
     console.log(userData);
     let tokenExpirationTime = localStorage.getItem("tokenExpiresIn");
+    if (!tokenExpirationTime) {
+      throw new Error("No token expiration time found");
+    }
+
     console.log(tokenExpirationTime, Date.now());
-    if (Date.now() > Number(tokenExpirationTime)) {
+    console.log(Date.now() > JSON.parse(tokenExpirationTime));
+    let pasrsedTokenExpTime = JSON.parse(tokenExpirationTime);
+    if (Date.now() > Number(pasrsedTokenExpTime)) {
       try {
         console.log("expired");
         let response = await fetch(url, {
@@ -22,14 +28,17 @@ export let checkIfTokenHasExpired = async (userData: any) => {
         });
         if (response.status === 200) {
           let data = await response.json();
-          console.log(data);
-          //set new tokenExpirationTime
-          const now = Date.now(); // current time in ms
-          const tokenExpirationTime = now + 1800 * 1000;
-          localStorage.setItem(
-            "tokenExpiresIn",
-            JSON.stringify(tokenExpirationTime)
-          );
+          console.log(data, "This is where data for new token comes first");
+          console.log(data["access-token"]);
+          if (data["access-token"]) {
+            //set new tokenExpirationTime
+            // Save the new token
+            localStorage.setItem("accessToken", data["access-token"]);
+
+            // Save the new expiration time 30Minutes
+            const newExpiration = Date.now() + 1800 * 1000;
+            localStorage.setItem("tokenExpiresIn", String(newExpiration));
+          }
         }
       } catch (err) {
         console.log(err);

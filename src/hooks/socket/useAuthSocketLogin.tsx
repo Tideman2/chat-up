@@ -1,6 +1,7 @@
 // useAuthSocket.ts (custom hook)
 import { useEffect } from "react";
 // socket.ts
+
 import { io } from "socket.io-client";
 export const socket = io("http://localhost:5000/auth"); // connect to /auth namespace
 
