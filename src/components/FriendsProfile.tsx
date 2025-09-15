@@ -1,4 +1,7 @@
 import { Box, Avatar, Typography } from "@mui/material";
+import { useEffect } from "react";
+import { Socket } from "socket.io-client";
+
 import theme from "../config/theme";
 
 type ChatBoxProps = {
@@ -6,7 +9,7 @@ type ChatBoxProps = {
   userId: string;
 };
 
-export default function ChatTextBox({ userName, userId }: ChatBoxProps) {
+export default function FriendsProfile({ userName, userId }: ChatBoxProps) {
   return (
     <Box
       sx={{
@@ -15,6 +18,9 @@ export default function ChatTextBox({ userName, userId }: ChatBoxProps) {
         alignItems: "center",
         cursor: "pointer",
         columnGap: "10px",
+      }}
+      onClick={() => {
+        console.log(userName, userId);
       }}
       key={userId}
     >

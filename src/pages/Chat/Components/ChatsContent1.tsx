@@ -2,7 +2,7 @@ import { Box } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 
 import useAuth from "../../../hooks/useAuth";
-import ChatTextBox from "../../../components/ChatTextBox";
+import FriendsProfile from "../../../components/FriendsProfile";
 import { checkIfTokenHasExpired, BASEURL } from "../../../utils/api";
 
 interface User {
@@ -71,7 +71,7 @@ let ChatsContent1 = () => {
         {isUsers &&
           users.map((user) => {
             return (
-              <ChatTextBox
+              <FriendsProfile
                 key={user.id}
                 userId={user.id}
                 userName={user.username}

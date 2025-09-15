@@ -1,6 +1,6 @@
 import { Box } from "@mui/material";
 import React from "react";
 
-let ChatsContent2 = () => {
+let ChatBox = () => {
   return <Box></Box>;
 };
