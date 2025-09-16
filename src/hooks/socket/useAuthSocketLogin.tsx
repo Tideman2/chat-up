@@ -3,7 +3,7 @@ import { useEffect } from "react";
 // socket.ts
 
 import { io } from "socket.io-client";
-export const socket = io("http://localhost:5000/auth"); // connect to /auth namespace
+export const socket = io("http://localhost:5000/auth"); // connect to /message namespace
 
 export function useAuthSocketLogin(onSuccess: (data: any) => void) {
   useEffect(() => {

@@ -1,7 +1,8 @@
 import { Box, Avatar, Typography } from "@mui/material";
 import { useEffect } from "react";
-import { Socket } from "socket.io-client";
 
+import { useMsgSocket } from "../contexts/msgSocketCtx/MsgSocketCtx";
+import useUiCtx from "../hooks/useUiCtx";
 import theme from "../config/theme";
 
 type ChatBoxProps = {
@@ -10,6 +11,24 @@ type ChatBoxProps = {
 };
 
 export default function FriendsProfile({ userName, userId }: ChatBoxProps) {
+  let { state, dispatch } = useUiCtx();
+  let socket = useMsgSocket();
+
+  function onFriendProfileClick() {
+    // let socket = io("http://localhost:5000/message");
+    // socket.on("connect", () => {
+    //   console.log("connected to socket, id: ", socket.id);
+    // });
+    console.log(socket.id);
+    dispatch({
+      type: "SET-CHATMATE",
+      payload: { username: userName, userId: Number(userId) },
+    });
+    if (!state.isChatRoomActive) {
+      dispatch({ type: "TOGGLE-CHATROOM" });
+    }
+  }
+
   return (
     <Box
       sx={{
@@ -20,7 +39,7 @@ export default function FriendsProfile({ userName, userId }: ChatBoxProps) {
         columnGap: "10px",
       }}
       onClick={() => {
-        console.log(userName, userId);
+        onFriendProfileClick();
       }}
       key={userId}
     >

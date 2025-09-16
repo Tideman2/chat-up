@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
+import { io } from "socket.io-client";
 
+import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import useAuth from "../../../hooks/useAuth";
 import FriendsProfile from "../../../components/FriendsProfile";
 import { checkIfTokenHasExpired, BASEURL } from "../../../utils/api";
@@ -16,6 +18,7 @@ let ChatsContent1 = () => {
   let [users, setUsers] = useState<User[]>([]);
   let { state } = useAuth();
   let { name, userId } = state;
+  let socket = useMsgSocket();
 
   let handleFectchUsers = useCallback(
     //fetch users to show as chat mate
@@ -54,6 +57,20 @@ let ChatsContent1 = () => {
   useEffect(() => {
     handleFectchUsers();
   }, [handleFectchUsers]);
+
+  useEffect(() => {
+    socket.on("connect", () => {
+      console.log("MsgSocket connected id :", socket.id);
+    });
+
+    // cleanup when component unmounts
+    return () => {
+      socket.off("connect");
+      socket.on("disconnect", (reason) => {
+        console.log("Socket disconnected:", reason);
+      });
+    };
+  }, []);
 
   let isUsers = users.length > 0;
 

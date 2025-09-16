@@ -2,6 +2,7 @@ import { uiActionTypes, uiDefaultValue } from "./uiTypes";
 
 export let initialState = {
   isChatRoomActive: false,
+  privateRoomChatMateData: {},
 };
 
 export let uiReducer = (
@@ -10,7 +11,16 @@ export let uiReducer = (
 ): uiDefaultValue => {
   switch (action.type) {
     case "TOGGLE-CHATROOM":
-      state.isChatRoomActive = !state.isChatRoomActive;
+      return {
+        ...state,
+        isChatRoomActive: !state.isChatRoomActive,
+      };
+
+    case "SET-CHATMATE":
+      return {
+        ...state,
+        privateRoomChatMateData: action.payload,
+      };
 
     default:
       return state;
