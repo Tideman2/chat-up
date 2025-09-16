@@ -1,43 +1,59 @@
-import React, { createContext, useContext } from "react";
+import React, { createContext, useContext, useReducer } from "react";
 import { io, Socket } from "socket.io-client";
 
-// create context
-const SocketContext = createContext<Socket | null>(null);
+interface SocketState {
+  socket: Socket | null;
+}
 
-let socket = io("http://localhost:5000/message");
+type Action =
+  | { type: "ADD-SOCKET"; payload: Socket }
+  | { type: "REMOVE-SOCKET" };
 
-// provider
+interface SocketContextType {
+  state: SocketState;
+  dispatch: React.Dispatch<Action>;
+}
+
+const initialState: SocketState = { socket: null };
+
+const socketReducer = (state: SocketState, action: Action): SocketState => {
+  switch (action.type) {
+    case "ADD-SOCKET":
+      return { socket: action.payload };
+    case "REMOVE-SOCKET":
+      state.socket?.disconnect();
+      return { socket: null };
+    default:
+      return state;
+  }
+};
+
+const SocketContext = createContext<SocketContextType | null>(null);
+
 export const MsgSocketProvider = ({
   children,
 }: {
   children: React.ReactNode;
 }) => {
-  //   const [socket] = React.useState(() =>
-  //     io("http://localhost:5000/message", { autoConnect: true })
-  //   );
+  const [state, dispatch] = useReducer(socketReducer, initialState);
 
   React.useEffect(() => {
-    socket.on("connect_error", (err) => {
-      console.error("Socket connect_error:", err.message);
-    });
-    socket.on("disconnect", (reason) => {
-      console.log("Socket disconnected:", reason);
-    });
-    socket.on("connect", () => {
-      console.log("connected wee", socket.id);
-    });
-    console.log("we ran");
+    const socket = io("http://localhost:5000/message");
+    dispatch({ type: "ADD-SOCKET", payload: socket });
+    console.log("wee ran", socket.id);
     return () => {
-      socket.disconnect(); // clean up
+      dispatch({ type: "REMOVE-SOCKET" });
     };
   }, []);
 
   return (
-    <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
+    <SocketContext.Provider value={{ state, dispatch }}>
+      {children}
+    </SocketContext.Provider>
   );
 };
 
-// custom hook for easier use
+// hook
 export const useMsgSocket = () => {
   const msgCtx = useContext(SocketContext);
   if (!msgCtx) throw new Error("useSocket must be used inside SocketProvider");

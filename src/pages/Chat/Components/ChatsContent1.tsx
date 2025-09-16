@@ -58,20 +58,6 @@ let ChatsContent1 = () => {
     handleFectchUsers();
   }, [handleFectchUsers]);
 
-  useEffect(() => {
-    socket.on("connect", () => {
-      console.log("MsgSocket connected id :", socket.id);
-    });
-
-    // cleanup when component unmounts
-    return () => {
-      socket.off("connect");
-      socket.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason);
-      });
-    };
-  }, []);
-
   let isUsers = users.length > 0;
 
   return (
