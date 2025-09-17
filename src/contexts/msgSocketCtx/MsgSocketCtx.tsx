@@ -40,7 +40,7 @@ export const MsgSocketProvider = ({
   React.useEffect(() => {
     const socket = io("http://localhost:5000/message");
     dispatch({ type: "ADD-SOCKET", payload: socket });
-    console.log("wee ran", socket.id);
+
     return () => {
       dispatch({ type: "REMOVE-SOCKET" });
     };

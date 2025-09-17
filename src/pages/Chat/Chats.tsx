@@ -11,14 +11,7 @@ export default function Chats() {
   let { state, dispatch } = useUiCtx();
 
   useEffect(() => {
-    let socket = io("http://localhost:5000/message");
-    socket.on("connect", () => {
-      console.log("connected to MSg nameSpace");
-    });
-
     return () => {
-      socket.off("connect");
-      socket.disconnect();
       if (state.isChatRoomActive) {
         dispatch({
           type: "TOGGLE-CHATROOM",

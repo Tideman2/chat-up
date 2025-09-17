@@ -24,6 +24,7 @@ let ChatsContent1 = () => {
     //fetch users to show as chat mate
     //Add users to context
     async function fecthAllUsers() {
+      console.log(state.name, state.userId);
       try {
         checkIfTokenHasExpired({ username: name, userId: String(userId) });
         console.log(state);

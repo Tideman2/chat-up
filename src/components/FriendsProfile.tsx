@@ -2,6 +2,7 @@ import { Box, Avatar, Typography } from "@mui/material";
 import { useEffect } from "react";
 
 import { useMsgSocket } from "../contexts/msgSocketCtx/MsgSocketCtx";
+import useAuth from "../hooks/useAuth";
 import useUiCtx from "../hooks/useUiCtx";
 import theme from "../config/theme";
 
@@ -10,23 +11,34 @@ type ChatBoxProps = {
   userId: string;
 };
 
-export default function FriendsProfile({ userName, userId }: ChatBoxProps) {
-  let { state, dispatch } = useUiCtx();
-  let socket = useMsgSocket();
+export default function FriendsProfile({
+  userName: dmName,
+  userId,
+}: ChatBoxProps) {
+  let { state: uiState, dispatch: uiDispatch } = useUiCtx();
+  let { state: socketState, dispatch: socketDispatch } = useMsgSocket();
+  let { state: userState } = useAuth();
+
+  let msgSocket = socketState.socket;
 
   function onFriendProfileClick() {
-    // let socket = io("http://localhost:5000/message");
-    // socket.on("connect", () => {
-    //   console.log("connected to socket, id: ", socket.id);
-    // });
-    console.log(socket.id);
-    dispatch({
+    console.log("UI State:", uiState);
+    console.log("Socket State:", socketState);
+    console.log("userInfo", userState.name, dmName);
+
+    uiDispatch({
       type: "SET-CHATMATE",
-      payload: { username: userName, userId: Number(userId) },
+      payload: { username: dmName, userId: Number(userId) },
     });
-    if (!state.isChatRoomActive) {
-      dispatch({ type: "TOGGLE-CHATROOM" });
+    if (!uiState.isChatRoomActive) {
+      uiDispatch({ type: "TOGGLE-CHATROOM" });
     }
+
+    // 2. Tell server to create/find DM room
+    msgSocket?.emit("entry_to_private_dm", {
+      userId: userState.userId,
+      receiverId: userId,
+    });
   }
 
   return (
@@ -46,7 +58,7 @@ export default function FriendsProfile({ userName, userId }: ChatBoxProps) {
       <Avatar sx={{ bgcolor: (theme) => theme.palette.secondary.main }}>
         U-S
       </Avatar>
-      <Typography fontWeight={"bold"}>{userName}</Typography>
+      <Typography fontWeight={"bold"}>{dmName}</Typography>
     </Box>
   );
 }
