@@ -1,13 +1,20 @@
-import { Grid, useTheme, Box, Typography } from "@mui/material";
+import { Grid, useTheme, Box, Typography, keyframes } from "@mui/material";
 
 import { DashBoardOutletContainerProps } from "../types";
 import React from "react";
 import theme from "../../../config/theme";
 
 let DefaultContent2: React.FC = () => {
+  const fadeInOut = keyframes`
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+`;
+
   return (
     <Box
       sx={{
+        animation: `${fadeInOut} 3s ease-in-out infinite`,
         width: "100%",
         height: "100%",
         display: "flex",
@@ -49,24 +56,33 @@ export default function DashBoardOutletContainer({
         size={4}
         sx={{
           backgroundColor: theme.palette.background.paper,
+          overflowY: "auto",
+          height: "100%",
+          scrollbarWidth: "none", // Firefox
+          "&::-webkit-scrollbar": {
+            display: "none", // Chrome, Safari
+          },
         }}
       >
         {content1}
       </Grid>
       <Grid
-        size={7}
+        size={7.4}
         sx={
           isDefault
             ? {
-                position: "fixed",
-                top: 0,
-                right: 0,
-                height: "100vh",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
               }
-            : {}
+            : {
+                overflowY: "auto",
+                height: "100%",
+                scrollbarWidth: "none", // Firefox
+                "&::-webkit-scrollbar": {
+                  display: "none", // Chrome, Safari
+                },
+              }
         }
       >
         {isDefault ? <DefaultContent2 /> : content2}

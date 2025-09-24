@@ -12,15 +12,22 @@ import DashBoardLink from "./components/DashBoardLink";
 
 let DashBoardRoot = styled(Grid)(({ theme }) => {
   return {
-    width: "100vw",
+    width: "100%",
     height: "100vh",
+    overflow: "hidden", // Prevent outer scrolling
+    maxHeight: "100vh", // Constrain height
   };
 });
 
 export default function DashBoardLayout() {
   return (
     <DashBoardRoot container>
-      <Grid size={0.6}>
+      <Grid
+        size={0.6}
+        sx={{
+          height: "100vh",
+        }}
+      >
         <Box
           sx={{
             position: "fixed",

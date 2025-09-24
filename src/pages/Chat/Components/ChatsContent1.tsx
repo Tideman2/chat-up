@@ -1,9 +1,8 @@
 import { Box } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
-import { io } from "socket.io-client";
 
-import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import useAuth from "../../../hooks/useAuth";
+import useUsersCtx from "../../../hooks/useUsersCtx";
 import FriendsProfile from "../../../components/FriendsProfile";
 import { checkIfTokenHasExpired, BASEURL } from "../../../utils/api";
 
@@ -16,29 +15,27 @@ interface User {
 // this component will house all friends that can be messaged
 let ChatsContent1 = () => {
   let [users, setUsers] = useState<User[]>([]);
-  let { state } = useAuth();
-  let { name, userId } = state;
-  let socket = useMsgSocket();
+  let { state: authState } = useAuth();
+  let { name, userId } = authState;
+  let { state: usersState, dispatch: usersDispatch } = useUsersCtx();
 
   let handleFectchUsers = useCallback(
     //fetch users to show as chat mate
     //Add users to context
     async function fecthAllUsers() {
-      console.log(state.name, state.userId);
+      console.log(authState.name, authState.userId);
       try {
         checkIfTokenHasExpired({ username: name, userId: String(userId) });
-        console.log(state);
         let url = BASEURL + "/user/get_users";
         let accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
           throw new Error("No access token found");
         }
         console.log(accessToken);
-        let parsedToken = JSON.parse(accessToken);
         let response = await fetch(url, {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${parsedToken}`,
+            Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
         });
@@ -47,6 +44,11 @@ let ChatsContent1 = () => {
           throw error;
         }
         let data = await response.json();
+        usersDispatch({
+          type: "SET_USERS",
+          payload: data,
+        });
+
         setUsers(data);
       } catch (err) {
         console.log(err);

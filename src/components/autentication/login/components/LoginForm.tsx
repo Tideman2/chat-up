@@ -6,8 +6,6 @@ import { useNavigate } from "react-router-dom";
 import Input from "../../components/Input";
 import StyledLink from "../../components/StyledLink";
 import useAuth from "../../../../hooks/useAuth";
-import { useAuthSocketLogin } from "../../../../hooks/socket/useAuthSocketLogin";
-import { UsbRounded } from "@mui/icons-material";
 
 type FormData = {
   username: string;
@@ -23,47 +21,54 @@ export default function LoginForm() {
   } = useForm<FormData>();
   let { setUser } = useAuth();
   let navigate = useNavigate();
-  const [error, setError] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleLoginSuccess = useCallback(
-    //Store token in localStorage and set tokenExpiration time
-    //prepare user data and add to context
-    //re-direct user to app
-
     (data: any) => {
+      console.log(data, "meee");
       if (data["status-code"] === 201) {
-        const now = Date.now(); // current time in ms
+        // Store token in localStorage and set tokenExpiration time
+        console.log("we got here");
+        const now = Date.now();
         const tokenExpirationTime = now + 1800 * 1000;
-        console.log(tokenExpirationTime);
-        console.log(data["access-token"]);
-        console.log(localStorage.getItem("accessToken"));
         localStorage.setItem(
           "tokenExpiresIn",
           JSON.stringify(tokenExpirationTime)
         );
-        localStorage.setItem(
-          "accessToken",
-          JSON.stringify(data["access-token"])
-        );
+        localStorage.setItem("accessToken", data["access-token"]);
 
+        // prepare user data and add to context
         let { id: userId, username: name, email } = data["user-info"];
-        console.log({ userId, name, email });
         let userCredentials = { userId, name, email };
         if (setUser) {
           setUser(userCredentials);
         }
+
+        // redirect user to app
         navigate("/app");
       } else {
-        console.log(data);
+        setError("Invalid login credentials");
       }
     },
-    [navigate]
+    [navigate, setUser]
   );
-  const { loginUser } = useAuthSocketLogin(handleLoginSuccess);
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    console.log("Submitted:", data);
-    loginUser(data);
+  const onSubmit: SubmitHandler<FormData> = async (formData) => {
+    try {
+      const response = await fetch("http://127.0.0.1:5000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      handleLoginSuccess(data);
+    } catch (err: any) {
+      console.error("Login error:", err);
+      setError("An error occurred while logging in.");
+    }
   };
 
   return (

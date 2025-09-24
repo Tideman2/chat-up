@@ -1,6 +1,10 @@
 export type uiDefaultValue = {
   isChatRoomActive: boolean;
-  privateRoomChatMateData: {};
+  privateRoomChatMateData: {
+    username: string;
+    userId: number;
+    avatar?: string;
+  };
 };
 
 export type uiActionTypes =

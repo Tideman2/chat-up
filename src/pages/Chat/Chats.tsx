@@ -1,14 +1,16 @@
-import { useEffect } from "react";
+import { useEffect, useContext } from "react";
 import { io } from "socket.io-client";
 
 import { MsgSocketProvider } from "../../contexts/msgSocketCtx/MsgSocketCtx";
 import useUiCtx from "../../hooks/useUiCtx";
+import { UserContext } from "../../contexts/autentication-context/UserContext";
 import ChatBox from "./Components/ChatBox";
 import ChatsContent1 from "./Components/ChatsContent1";
 import DashBoardOutletContainer from "../../components/dashboard/components/DashBoardOutletContainer";
 
 export default function Chats() {
   let { state, dispatch } = useUiCtx();
+  // let { users } = useContext(UserContext);
 
   useEffect(() => {
     return () => {

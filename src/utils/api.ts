@@ -2,7 +2,7 @@ export let BASEURL = "http://127.0.0.1:5000";
 
 export let checkIfTokenHasExpired = async (userData: any) => {
   let url = BASEURL + "/auth/get_token";
-
+  console.log(userData);
   if (
     localStorage.getItem("tokenExpiresIn") &&
     localStorage.getItem("accessToken")

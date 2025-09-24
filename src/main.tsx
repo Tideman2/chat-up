@@ -5,18 +5,15 @@ import { ThemeProvider, CssBaseline } from "@mui/material";
 
 import Router from "./Router";
 import theme from "./config/theme";
-import { UserContextProvider } from "./contexts/autentication-context/UserContext";
-import { UiContextProvider } from "./contexts/uiContext/UiContext";
+import ContextWrapper from "./contexts/ContextWrapper";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ThemeProvider theme={theme}>
-      <UserContextProvider>
-        <UiContextProvider>
-          <CssBaseline />
-          <RouterProvider router={Router} />
-        </UiContextProvider>
-      </UserContextProvider>
+      <ContextWrapper>
+        <CssBaseline />
+        <RouterProvider router={Router} />
+      </ContextWrapper>
     </ThemeProvider>
   </StrictMode>
 );
