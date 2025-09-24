@@ -53,7 +53,7 @@ export default function DashBoardOutletContainer({
   return (
     <>
       <Grid
-        size={4}
+        size={3}
         sx={{
           backgroundColor: theme.palette.background.paper,
           overflowY: "auto",
@@ -67,7 +67,7 @@ export default function DashBoardOutletContainer({
         {content1}
       </Grid>
       <Grid
-        size={7.4}
+        size={8.4}
         sx={
           isDefault
             ? {

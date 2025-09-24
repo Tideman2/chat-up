@@ -17,11 +17,12 @@ const theme = createTheme({
     // 🌟 Main branding color - Used for AppBar, Buttons, Links, etc.
     primary: {
       main: "#075E54",
+      light: lighten("#075E54", 0.2),
       500: "#075E54",
       contrastText: "#ffffff",
     },
 
-    // 🌟 Accent color - Used for action buttons like "Send", FAB, etc.
+    // Accent color - Used for action buttons like "Send", FAB, etc.
     secondary: {
       main: "#25D366",
       contrastText: "#ffffff",
@@ -39,7 +40,7 @@ const theme = createTheme({
       hover: lighten("#B3B3B3", 0.3),
     },
 
-    // 🖊️ Used for most text
+    // Used for most text
     text: {
       primary: "#1A1C1F", // Main text
       secondary: "#4F4F4F", // Subtle text like time, subtitles
