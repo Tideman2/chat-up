@@ -25,7 +25,7 @@ let ChatsContent1 = () => {
     async function fecthAllUsers() {
       console.log(authState.name, authState.userId);
       try {
-        checkIfTokenHasExpired({ username: name, userId: String(userId) });
+        checkIfTokenHasExpired(name, userId);
         let url = BASEURL + "/user/get_users";
         let accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {

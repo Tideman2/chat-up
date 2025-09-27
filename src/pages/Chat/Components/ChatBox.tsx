@@ -1,62 +1,89 @@
 import { Box, styled, TextField, Button } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
 import useAuth from "../../../hooks/useAuth";
 import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import DmOwnerProfile from "./DmOwnerProfile";
 import useUiCtx from "../../../hooks/useUiCtx";
-import theme from "../../../config/theme";
 
-let DmMessages = styled(Box)(({ theme }) => {
-  return {
-    height: "auto",
-    width: "fit-content",
-    padding: "10px",
-    borderRadius: "7%",
-    backgroundColor: theme.palette.background.paper,
-    variants: theme.typography.body1,
-  };
-});
+// Styled components
+let DmMessages = styled(Box)(({ theme }) => ({
+  height: "auto",
+  width: "fit-content",
+  padding: "10px",
+  borderRadius: "7%",
+  backgroundColor: theme.palette.primary.main,
+}));
 
-let DmMessagesContainer = styled(Box)(({ theme }) => {
-  return {
-    width: "100%",
-    overflowY: "auto",
-    padding: "10px",
-  };
+let DmMessagesContainer = styled(Box)({
+  width: "100%",
+  color: "white",
+  fontWeight: 300,
+  overflowY: "auto",
+  padding: "10px",
 });
 
 let ChatBox = () => {
-  let { state: uiState, dispatch: uiDispatch } = useUiCtx();
-  let { state: socketState, dispatch: socketDispatch } = useMsgSocket();
-  let { state: userState } = useAuth();
-  let msgSocket = socketState.socket;
-  let { userId } = userState;
-  let { privateRoomChatMateData } = uiState;
+  const { state: uiState } = useUiCtx();
+  const { state: socketState } = useMsgSocket();
+  const { state: userState } = useAuth();
+  const { userId } = userState;
+  const { privateRoomChatMateData } = uiState;
+  const msgSocket = socketState.socket;
 
-  //set up sockets event listeners and emit actions
+  const [messagesBetweenUsers, setMessages] = useState([]);
+
   useEffect(() => {
     if (!msgSocket || !privateRoomChatMateData.userId) return;
-    console.log("Effect ran", uiState.privateRoomChatMateData);
 
-    msgSocket.on("error", (data) => {
-      console.error("Error from server:", data);
-    });
-
-    msgSocket.emit("on_entry_to_private_dm", {
-      userId,
-      receiverId: privateRoomChatMateData.userId,
-    });
-    console.log(userId);
-    msgSocket.on("entry_to_dm_response", (data) => {
+    const handleEntryToDmResponse = (data) => {
       console.log("Server response:", data);
-    });
+      setMessages(data.messages || []);
+    };
 
+    const handleConnectError = (error: { message: string }) => {
+      console.error("Socket connection error:", error);
+    };
+
+    const handleSocketError = (error: { message: string }) => {
+      console.error("Error from server:", error);
+    };
+
+    // Register event listeners
+    msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
+    msgSocket.on("connect_error", handleConnectError);
+    msgSocket.on("error", handleSocketError);
+
+    // Emit event (only once)
+    if (msgSocket.connected) {
+      msgSocket.emit("entry_to_private_dm", {
+        userId,
+        receiverId: privateRoomChatMateData.userId,
+      });
+    } else {
+      msgSocket.once("connect", () => {
+        msgSocket.emit("entry_to_private_dm", {
+          userId,
+          receiverId: privateRoomChatMateData.userId,
+        });
+      });
+    }
+
+    // Cleanup
     return () => {
-      msgSocket.off("entry_to_dm_response");
+      msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
+      msgSocket.off("connect_error", handleConnectError);
+      msgSocket.off("error", handleSocketError);
     };
   }, [msgSocket, privateRoomChatMateData.userId, userId]);
+
+  // Render messages
+  const renderMessages = () => {
+    return messagesBetweenUsers.map((message) => (
+      <DmMessages key={message.id}>{message.content}</DmMessages>
+    ));
+  };
 
   return (
     <Box
@@ -64,18 +91,30 @@ let ChatBox = () => {
         height: "100%",
         width: "100%",
         display: "flex",
+        mt: "2px",
         flexDirection: "column",
       }}
     >
-      {/* // Header area */}
       <Box sx={{ flexShrink: 0 }}>
         <DmOwnerProfile />
       </Box>
-      {/* // Messages area */}
+
       <DmMessagesContainer sx={{ flex: 1 }}>
-        <DmMessages>Messages will be shown here</DmMessages>
+        {messagesBetweenUsers.length > 0 ? (
+          renderMessages()
+        ) : (
+          <DmMessages
+            sx={{
+              marginLeft: "auto",
+              marginRight: "auto",
+              marginTop: "20px",
+            }}
+          >
+            No messages yet.
+          </DmMessages>
+        )}
       </DmMessagesContainer>
-      {/* // Input area */}
+
       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
         <TextField
           variant="outlined"

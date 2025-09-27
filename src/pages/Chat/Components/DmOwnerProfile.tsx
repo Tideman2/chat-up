@@ -22,9 +22,12 @@ const DmOwnerProfile: React.FC = () => {
   return (
     <Box
       sx={{
-        backgroundColor: (theme) => theme.palette.primary.main,
+        backgroundColor: (theme) => theme.palette.background.paper,
         height: "fit content",
-        width: "100%",
+        width: "98%",
+        boxSizing: "content-box",
+        marginRight: "auto",
+        marginLeft: "auto",
         display: "flex",
       }}
     >

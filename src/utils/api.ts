@@ -1,13 +1,14 @@
 export let BASEURL = "http://127.0.0.1:5000";
 
-export let checkIfTokenHasExpired = async (userData: any) => {
+export let checkIfTokenHasExpired = async (name: string, userId: string) => {
   let url = BASEURL + "/auth/get_token";
-  console.log(userData);
+  let userData = { username: name, userId: String(userId) };
+  console.log(userData.userId, userData.username);
   if (
     localStorage.getItem("tokenExpiresIn") &&
     localStorage.getItem("accessToken")
   ) {
-    console.log(userData);
+    console.log(userData.userId, userData.username);
     let tokenExpirationTime = localStorage.getItem("tokenExpiresIn");
     if (!tokenExpirationTime) {
       throw new Error("No token expiration time found");

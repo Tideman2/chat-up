@@ -33,12 +33,6 @@ export default function FriendsProfile({
     if (!uiState.isChatRoomActive) {
       uiDispatch({ type: "TOGGLE-CHATROOM" });
     }
-
-    // 2. Tell server to create/find DM room
-    msgSocket?.emit("entry_to_private_dm", {
-      userId: userState.userId,
-      receiverId: userId,
-    });
   }
 
   return (

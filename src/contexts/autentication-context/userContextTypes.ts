@@ -11,6 +11,11 @@ export type usersArrayType = {
   email: string;
 }[];
 
+// | {
+//     type: "SEND-DM";
+//     payload: {};
+//   }
+
 export type userAction =
   | {
       type: "SIGN-UP";

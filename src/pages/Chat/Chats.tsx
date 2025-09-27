@@ -10,18 +10,20 @@ import DashBoardOutletContainer from "../../components/dashboard/components/Dash
 
 export default function Chats() {
   let { state, dispatch } = useUiCtx();
+  let { isChatRoomActive, privateRoomChatMateData } = state;
+  let { userId, username, avatar } = privateRoomChatMateData;
   // let { users } = useContext(UserContext);
 
   useEffect(() => {
     return () => {
-      if (state.isChatRoomActive) {
+      if (isChatRoomActive) {
         dispatch({
           type: "TOGGLE-CHATROOM",
         });
       }
     };
   }, []);
-  console.log(state);
+  console.log(userId, username, avatar);
 
   return (
     <MsgSocketProvider>
