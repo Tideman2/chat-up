@@ -18,13 +18,61 @@ export default function FriendsProfile({
   let { state: uiState, dispatch: uiDispatch } = useUiCtx();
   let { state: socketState, dispatch: socketDispatch } = useMsgSocket();
   let { state: userState } = useAuth();
-
+  let { userId: userIdFromAuth, name: userNameFromAuth } = userState;
   let msgSocket = socketState.socket;
+
+  // useEffect(() => {
+  //   if (!msgSocket) return;
+  //   console.log("useEffct in FriendsProfile ran");
+  //   const handleEntryToDmResponse = (data) => {
+  //     console.log("Server response:", data);
+  //   };
+
+  //   const handleNewMessage = (messageData) => {
+  //     console.log("New message received:", messageData);
+  //   };
+
+  //   const handleConnectError = (error: { message: string }) => {
+  //     console.error("Socket connection error:", error);
+  //   };
+
+  //   const handleSocketError = (error: { message: string }) => {
+  //     console.error("Error from server:", error);
+  //   };
+
+  //   // Register event listeners
+  //   msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
+  //   msgSocket.on("new_message", handleNewMessage);
+  //   msgSocket.on("connect_error", handleConnectError);
+  //   msgSocket.on("error", handleSocketError);
+
+  //   // Emit event (only once)
+  //   if (msgSocket.connected) {
+  //     msgSocket.emit("entry_to_private_dm", {
+  //       userId: userIdFromAuth,
+  //       receiverId: userId,
+  //     });
+  //   } else {
+  //     msgSocket.once("connect", () => {
+  //       msgSocket.emit("entry_to_private_dm", {
+  //         userId: userIdFromAuth,
+  //         receiverId: userId,
+  //       });
+  //     });
+  //   }
+
+  //   // Cleanup
+  //   return () => {
+  //     msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
+  //     msgSocket.off("connect_error", handleConnectError);
+  //     msgSocket.off("error", handleSocketError);
+  //   };
+  // }, []);
 
   function onFriendProfileClick() {
     console.log("UI State:", uiState);
     console.log("Socket State:", socketState);
-    console.log("userInfo", userState.name, dmName);
+    console.log("userInfo", userNameFromAuth, dmName);
 
     uiDispatch({
       type: "SET-CHATMATE",

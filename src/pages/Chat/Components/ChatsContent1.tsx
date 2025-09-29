@@ -1,6 +1,7 @@
 import { Box } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 
+import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import useAuth from "../../../hooks/useAuth";
 import useUsersCtx from "../../../hooks/useUsersCtx";
 import FriendsProfile from "../../../components/FriendsProfile";
@@ -16,8 +17,14 @@ interface User {
 let ChatsContent1 = () => {
   let [users, setUsers] = useState<User[]>([]);
   let { state: authState } = useAuth();
+  let { dispatch: usersDispatch } = useUsersCtx();
+  const { state: socketState } = useMsgSocket();
   let { name, userId } = authState;
-  let { state: usersState, dispatch: usersDispatch } = useUsersCtx();
+  const msgSocket = socketState.socket;
+
+  function removeCurrentUserFromUsersList(users: User[]) {
+    return users.filter((user) => user.id !== userId);
+  }
 
   let handleFectchUsers = useCallback(
     //fetch users to show as chat mate
@@ -44,6 +51,7 @@ let ChatsContent1 = () => {
           throw error;
         }
         let data = await response.json();
+        data = removeCurrentUserFromUsersList(data);
         usersDispatch({
           type: "SET_USERS",
           payload: data,
@@ -57,6 +65,7 @@ let ChatsContent1 = () => {
     []
   );
 
+  //useEffect to fetch users and setup socket listeners
   useEffect(() => {
     handleFectchUsers();
   }, [handleFectchUsers]);

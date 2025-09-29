@@ -29,10 +29,11 @@ let ChatBox = () => {
   const { state: socketState } = useMsgSocket();
   const { state: userState } = useAuth();
   const { userId } = userState;
-  const { privateRoomChatMateData } = uiState;
+  const { privateRoomChatMateData, uiDispatch } = uiState;
   const msgSocket = socketState.socket;
 
   const [messagesBetweenUsers, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     if (!msgSocket || !privateRoomChatMateData.userId) return;
@@ -40,6 +41,11 @@ let ChatBox = () => {
     const handleEntryToDmResponse = (data) => {
       console.log("Server response:", data);
       setMessages(data.messages || []);
+    };
+
+    const handleNewMessage = (messageData) => {
+      console.log("New message received:", messageData);
+      setMessages((prev) => [...prev, messageData]);
     };
 
     const handleConnectError = (error: { message: string }) => {
@@ -52,10 +58,11 @@ let ChatBox = () => {
 
     // Register event listeners
     msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
+    msgSocket.on("new_message", handleNewMessage);
     msgSocket.on("connect_error", handleConnectError);
     msgSocket.on("error", handleSocketError);
 
-    // Emit event (only once)
+    // Emit event
     if (msgSocket.connected) {
       msgSocket.emit("entry_to_private_dm", {
         userId,
@@ -70,9 +77,10 @@ let ChatBox = () => {
       });
     }
 
-    // Cleanup
+    // Cleanup - ADD THE MISSING LISTENER
     return () => {
       msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
+      msgSocket.off("new_message", handleNewMessage); // ← ADD THIS
       msgSocket.off("connect_error", handleConnectError);
       msgSocket.off("error", handleSocketError);
     };
@@ -80,9 +88,37 @@ let ChatBox = () => {
 
   // Render messages
   const renderMessages = () => {
-    return messagesBetweenUsers.map((message) => (
-      <DmMessages key={message.id}>{message.content}</DmMessages>
+    return messagesBetweenUsers.map((message, index) => (
+      <DmMessages
+        key={index}
+        sx={{
+          marginLeft: message.sender_id === userId ? "auto" : "0",
+          marginTop: "15px",
+          marginBottom: "15px",
+        }}
+      >
+        {message.content}
+      </DmMessages>
     ));
+  };
+
+  const handleSendMessage = () => {
+    if (!msgSocket || !message.trim() || !privateRoomChatMateData.userId)
+      return;
+    console.log("Preparing to send message:", message);
+    const messageData = {
+      content: message.trim(),
+      sender_id: userId,
+      receiver_id: privateRoomChatMateData.userId,
+    };
+
+    console.log("Sending message:", messageData);
+
+    // Emit the message to the server
+    msgSocket.emit("private_message", messageData);
+
+    // Clear the input field
+    setMessage("");
   };
 
   return (
@@ -121,6 +157,8 @@ let ChatBox = () => {
           fullWidth
           placeholder="Type a message..."
           sx={{ margin: "5px" }}
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
         />
         <Button
           sx={{
@@ -132,7 +170,13 @@ let ChatBox = () => {
             minWidth: "auto",
           }}
           variant="contained"
-          endIcon={<SendIcon />}
+          endIcon={
+            <SendIcon
+              onClick={() => {
+                handleSendMessage();
+              }}
+            />
+          }
         >
           Send
         </Button>

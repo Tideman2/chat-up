@@ -13,11 +13,6 @@ let DmOwnerName = styled(Typography)(({ theme }) => {
 
 const DmOwnerProfile: React.FC = () => {
   let { state: uiState, dispatch: uiDispatch } = useUiCtx();
-  // More detailed logging
-  // console.log("Full uiState:", uiState);
-  // console.log("privateRoomChatMateData:", uiState.privateRoomChatMateData);
-  // console.log("username:", uiState.privateRoomChatMateData.username);
-  // console.log("userId:", uiState.privateRoomChatMateData.userId);
 
   return (
     <Box
