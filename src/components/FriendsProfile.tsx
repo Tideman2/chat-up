@@ -1,10 +1,9 @@
 import { Box, Avatar, Typography } from "@mui/material";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import { useMsgSocket } from "../contexts/msgSocketCtx/MsgSocketCtx";
 import useAuth from "../hooks/useAuth";
 import useUiCtx from "../hooks/useUiCtx";
-import theme from "../config/theme";
 
 type ChatBoxProps = {
   userName: string;
@@ -18,67 +17,90 @@ export default function FriendsProfile({
   let { state: uiState, dispatch: uiDispatch } = useUiCtx();
   let { state: socketState, dispatch: socketDispatch } = useMsgSocket();
   let { state: userState } = useAuth();
+  let { isChatRoomActive, privateRoomChatMateData, currentRoomId } = uiState;
   let { userId: userIdFromAuth, name: userNameFromAuth } = userState;
   let msgSocket = socketState.socket;
+  const [roomIdLocalToComponent, setRoomIdLocalToComponent] = useState<
+    number | null
+  >(null);
 
-  // useEffect(() => {
-  //   if (!msgSocket) return;
-  //   console.log("useEffct in FriendsProfile ran");
-  //   const handleEntryToDmResponse = (data) => {
-  //     console.log("Server response:", data);
-  //   };
+  useEffect(() => {
+    if (!msgSocket) return;
 
-  //   const handleNewMessage = (messageData) => {
-  //     console.log("New message received:", messageData);
-  //   };
+    const handleEntryToDmResponse = (data: any) => {
+      let { roomId, messages, senderId, receiverId } = data;
+      console.log("currentRoomId", roomId);
+      const a = [senderId, receiverId];
+      console.log({ a, userId, userIdFromAuth });
 
-  //   const handleConnectError = (error: { message: string }) => {
-  //     console.error("Socket connection error:", error);
-  //   };
+      if (a.includes(userId) && a.includes(userIdFromAuth)) {
+        uiDispatch({
+          type: "SET-CHATMATE",
+          payload: { username: dmName, userId: Number(userId), roomId }, // Use roomId here
+        });
+        setRoomIdLocalToComponent(roomId);
+        uiDispatch({
+          type: "SET_ROOM_MESSAGES",
+          payload: { roomId, messages },
+        });
+      }
+    };
 
-  //   const handleSocketError = (error: { message: string }) => {
-  //     console.error("Error from server:", error);
-  //   };
+    const handleNewMessage = (messageData: any) => {
+      // console.log("New message received:", messageData);
+    };
 
-  //   // Register event listeners
-  //   msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
-  //   msgSocket.on("new_message", handleNewMessage);
-  //   msgSocket.on("connect_error", handleConnectError);
-  //   msgSocket.on("error", handleSocketError);
+    const handleConnectError = (error: { message: string }) => {
+      // console.error("Socket connection error:", error);
+    };
 
-  //   // Emit event (only once)
-  //   if (msgSocket.connected) {
-  //     msgSocket.emit("entry_to_private_dm", {
-  //       userId: userIdFromAuth,
-  //       receiverId: userId,
-  //     });
-  //   } else {
-  //     msgSocket.once("connect", () => {
-  //       msgSocket.emit("entry_to_private_dm", {
-  //         userId: userIdFromAuth,
-  //         receiverId: userId,
-  //       });
-  //     });
-  //   }
+    const handleSocketError = (error: { message: string }) => {
+      // console.error("Error from server:", error);
+    };
 
-  //   // Cleanup
-  //   return () => {
-  //     msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
-  //     msgSocket.off("connect_error", handleConnectError);
-  //     msgSocket.off("error", handleSocketError);
-  //   };
-  // }, []);
+    // Register event listeners
+    msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
+    msgSocket.on("new_message", handleNewMessage);
+    msgSocket.on("connect_error", handleConnectError);
+    msgSocket.on("error", handleSocketError);
+
+    // Emit event (only once)
+    if (msgSocket.connected) {
+      msgSocket.emit("entry_to_private_dm", {
+        userId: userIdFromAuth,
+        receiverId: userId,
+      });
+    } else {
+      msgSocket.once("connect", () => {
+        msgSocket.emit("entry_to_private_dm", {
+          userId: userIdFromAuth,
+          receiverId: userId,
+        });
+      });
+    }
+
+    // Cleanup
+    return () => {
+      msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
+      msgSocket.off("new_message", handleNewMessage);
+      msgSocket.off("connect_error", handleConnectError);
+      msgSocket.off("error", handleSocketError);
+    };
+  }, []);
 
   function onFriendProfileClick() {
-    console.log("UI State:", uiState);
-    console.log("Socket State:", socketState);
-    console.log("userInfo", userNameFromAuth, dmName);
+    console.log({ roomIdLocalToComponent, userId, dmName });
 
-    uiDispatch({
-      type: "SET-CHATMATE",
-      payload: { username: dmName, userId: Number(userId) },
-    });
-    if (!uiState.isChatRoomActive) {
+    // ALWAYS set current room when clicking a friend
+    if (privateRoomChatMateData.roomId != null) {
+      uiDispatch({
+        type: "SET_CURRENT_ROOM",
+        payload: roomIdLocalToComponent,
+      });
+    }
+
+    // Only show chat room if it's hidden
+    if (!isChatRoomActive) {
       uiDispatch({ type: "TOGGLE-CHATROOM" });
     }
   }

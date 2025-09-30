@@ -1,17 +1,19 @@
-import { uiActionTypes, uiDefaultValue } from "./uiTypes";
+import { uiDefaultValue, uiActionTypes } from "./uiTypes";
 
 export const initialState: uiDefaultValue = {
   isChatRoomActive: false,
-  currenrtRoomId: null,
+  currentRoomId: null, // INITIAL ACTIVE ROOM ID
   privateRoomChatMateData: {
-    username: "", // Add required properties
-    userId: 0, // Add required properties
-    avatar: "", // Optional, but good to initialize
+    username: "",
+    userId: 0,
+    roomId: null,
+    avatar: "",
   },
-  roomsList: [], // This will be privateRoomMateData[] automatically
+  // roomsList: [],
+  messages: {}, // EMPTY MESSAGES OBJECT
 };
 
-export let uiReducer = (
+export const uiReducer = (
   state: uiDefaultValue,
   action: uiActionTypes
 ): uiDefaultValue => {
@@ -25,13 +27,61 @@ export let uiReducer = (
     case "SET-CHATMATE":
       return {
         ...state,
-        privateRoomChatMateData: action.payload,
+        privateRoomChatMateData: {
+          ...state.privateRoomChatMateData,
+          ...action.payload,
+        },
       };
-    case "ADD-ROOM":
+
+    // case "SET_ROOMS_LIST":
+    //   const existingRoom = state.roomsList.find(
+    //     (room) => room.roomOwnerId === action.payload.roomOwnerId
+    //   );
+    //   if (existingRoom) {
+    //     return state; // No changes if room already exists
+    //   }
+    //   return {
+    //     ...state,
+    //     roomsList: [...state.roomsList, action.payload],
+    //   };
+
+    case "SET_CURRENT_ROOM": // HANDLE ACTIVE ROOM ID
       return {
         ...state,
-        roomsList: action.payload,
+        currentRoomId: action.payload,
       };
+
+    case "SET_ROOM_MESSAGES": // STORE MESSAGES FOR SPECIFIC ROOM
+      let existingRoom = false;
+      for (let roomId in state.messages) {
+        if (Number(roomId) === action.payload.roomId) {
+          existingRoom = true;
+          break;
+        }
+      }
+
+      if (existingRoom) {
+        return state; // No changes if room messages already exist
+      }
+
+      return {
+        ...state,
+        messages: {
+          ...state.messages,
+          [action.payload.roomId]: action.payload.messages,
+        },
+      };
+
+    case "ADD_MESSAGE": // ADD SINGLE MESSAGE TO ROOM
+      const currentMessages = state.messages[action.payload.roomId] || [];
+      return {
+        ...state,
+        messages: {
+          ...state.messages,
+          [action.payload.roomId]: [...currentMessages, action.payload.message],
+        },
+      };
+
     default:
       return state;
   }
