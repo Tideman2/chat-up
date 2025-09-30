@@ -1,11 +1,21 @@
 import { Box, styled, TextField, Button } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import React, { useEffect, useState } from "react";
-
 import useAuth from "../../../hooks/useAuth";
 import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import DmOwnerProfile from "./DmOwnerProfile";
 import useUiCtx from "../../../hooks/useUiCtx";
+
+interface Message {
+  id: number;
+  content: string;
+  receiver_id: number;
+  room_id: number;
+  sender_id: number;
+  sender_username: string;
+  timestamp: string; // or use Date if you parse it
+  type: "private" | "group" | string;
+}
 
 // Styled components
 let DmMessages = styled(Box)(({ theme }) => ({
@@ -24,145 +34,91 @@ let DmMessagesContainer = styled(Box)({
   padding: "10px",
 });
 
-// let ChatBox = () => {
-//   const { state: uiState } = useUiCtx();
-//   const { state: socketState } = useMsgSocket();
-//   const { state: userState } = useAuth();
-//   const { userId } = userState;
-//   const { privateRoomChatMateData, currentRoomId, uiDispatch, messages } =
-//     uiState;
-//   const msgSocket = socketState.socket;
-//   console.log(currentRoomId, "currentRoomId from uiState in ChatBox");
-//   if (currentRoomId) {
-//     console.log(messages[currentRoomId], "messages from uiState in ChatBox");
-//   }
-//   const [messagesBetweenUsers, setMessages] = useState([]);
-//   const [message, setMessage] = useState("");
-
-//   // Render messages
-//   const renderMessages = () => {
-//     return messagesBetweenUsers.map((message, index) => (
-//       <DmMessages
-//         key={index}
-//         sx={{
-//           marginLeft: message.sender_id === userId ? "auto" : "0",
-//           marginTop: "15px",
-//           marginBottom: "15px",
-//         }}
-//       >
-//         {message.content}
-//       </DmMessages>
-//     ));
-//   };
-
-//   const handleSendMessage = () => {
-//     if (!msgSocket || !message.trim() || !privateRoomChatMateData.userId)
-//       return;
-//     console.log("Preparing to send message:", message);
-//     const messageData = {
-//       content: message.trim(),
-//       sender_id: userId,
-//       receiver_id: privateRoomChatMateData.userId,
-//     };
-
-//     console.log("Sending message:", messageData);
-
-//     // Emit the message to the server
-//     msgSocket.emit("private_message", messageData);
-
-//     // Clear the input field
-//     setMessage("");
-//   };
-
-//   return (
-//     <Box
-//       sx={{
-//         height: "100%",
-//         width: "100%",
-//         display: "flex",
-//         mt: "2px",
-//         flexDirection: "column",
-//       }}
-//     >
-//       <Box sx={{ flexShrink: 0 }}>
-//         <DmOwnerProfile />
-//       </Box>
-
-//       <DmMessagesContainer sx={{ flex: 1 }}>
-//         {messagesBetweenUsers.length > 0 ? (
-//           renderMessages()
-//         ) : (
-//           <DmMessages
-//             sx={{
-//               marginLeft: "auto",
-//               marginRight: "auto",
-//               marginTop: "20px",
-//             }}
-//           >
-//             No messages yet.
-//           </DmMessages>
-//         )}
-//       </DmMessagesContainer>
-
-//       <Box sx={{ display: "flex", gap: 1, alignItems: "center" }}>
-//         <TextField
-//           variant="outlined"
-//           fullWidth
-//           placeholder="Type a message..."
-//           sx={{ margin: "5px" }}
-//           value={message}
-//           onChange={(e) => setMessage(e.target.value)}
-//         />
-//         <Button
-//           sx={{
-//             backgroundColor: (theme) => theme.palette.primary.main,
-//             "&:hover": {
-//               backgroundColor: (theme) => theme.palette.primary.light,
-//             },
-//             flexShrink: 0,
-//             minWidth: "auto",
-//           }}
-//           variant="contained"
-//           endIcon={
-//             <SendIcon
-//               onClick={() => {
-//                 handleSendMessage();
-//               }}
-//             />
-//           }
-//         >
-//           Send
-//         </Button>
-//       </Box>
-//     </Box>
-//   );
-// };
 let ChatBox = () => {
-  const { state: uiState } = useUiCtx();
-  const { state: socketState } = useMsgSocket();
+  const { state: uiState, dispatch: uiDispatch } = useUiCtx();
   const { state: userState } = useAuth();
-  const { userId } = userState;
-  const { privateRoomChatMateData, currentRoomId, messages } = uiState; // Get messages from context
-  const msgSocket = socketState.socket;
+  const { state: socketState } = useMsgSocket(); // Get socket from context
+  const { userId: userIdFromAuth, name: userNameFromAuth } = userState;
+  const { privateRoomChatMateData, currentRoomId, messages } = uiState;
+  const msgSocket = socketState.socket; // Use context socket instead of hook
+
+  const [currentRoomMessages, setCurrentRoomMessages] = useState<Message[]>([]);
+  const [message, setMessage] = useState("");
 
   console.log(currentRoomId, "currentRoomId from uiState in ChatBox");
   console.log(messages, "all messages from uiState in ChatBox");
-  // Get messages for the current room from context
-  const currentRoomMessages = currentRoomId
-    ? messages[currentRoomId] || []
-    : [];
 
-  console.log(currentRoomMessages, "messages for current room in ChatBox");
+  useEffect(() => {
+    if (!msgSocket) return;
 
-  const [message, setMessage] = useState("");
+    const handleEntryToDmResponse = (data: any) => {
+      let { roomId, messages, senderId, receiverId } = data;
+      setCurrentRoomMessages(messages); // Update local state with messages
+      console.log("currentRoomId", roomId);
+      console.log(messages);
+      if (data && roomId) {
+        uiDispatch({
+          type: "SET-CHATMATE",
+          payload: {
+            username: privateRoomChatMateData.username,
+            userId: Number(privateRoomChatMateData.userId),
+            roomId,
+          },
+        });
+        uiDispatch({
+          type: "SET_ROOM_MESSAGES",
+          payload: { roomId, messages },
+        });
+      }
+    };
+
+    const handleNewMessage = (data: any) => {
+      console.log("New message received:", data);
+      setCurrentRoomMessages((prevMessages) => [...prevMessages, data]);
+      // if (roomId === currentRoomId) {
+      //   // setCurrentRoomMessages((prevMessages) => [...prevMessages, message]);
+      // }
+    };
+
+    // Register event listeners
+    msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
+    msgSocket.on("new_message", handleNewMessage);
+
+    // Emit event (only once)
+    if (msgSocket.connected) {
+      msgSocket.emit("entry_to_private_dm", {
+        userId: userIdFromAuth,
+        receiverId: privateRoomChatMateData.userId,
+      });
+    } else {
+      msgSocket.once("connect", () => {
+        msgSocket.emit("entry_to_private_dm", {
+          userId: userIdFromAuth,
+          receiverId: privateRoomChatMateData.userId,
+        });
+      });
+    }
+
+    // Cleanup
+    return () => {
+      msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
+      msgSocket.off("new_message", handleNewMessage);
+    };
+  }, [msgSocket, userIdFromAuth, privateRoomChatMateData.userId, uiDispatch]);
+
+  useEffect(() => {
+    // Reset messages when switching to a different chat
+    setCurrentRoomMessages([]);
+  }, [privateRoomChatMateData.userId]);
 
   // Render messages from context
   const renderMessages = () => {
-    return currentRoomMessages.map((message) => (
+    return currentRoomMessages.map((message, index) => (
       <DmMessages
-        key={message.id} // Use message.id as key
+        key={index}
         sx={{
-          marginLeft: message.sender_id === Number(userId) ? "auto" : "0",
+          marginLeft:
+            message.sender_id === Number(userIdFromAuth) ? "auto" : "0",
           marginTop: "15px",
           marginBottom: "15px",
         }}
@@ -173,17 +129,14 @@ let ChatBox = () => {
   };
 
   const handleSendMessage = () => {
-    if (
-      !msgSocket ||
-      !message.trim() ||
-      !privateRoomChatMateData.userId ||
-      !currentRoomId
-    )
+    if (!msgSocket || !message.trim()) {
+      console.log("handleSendMessage called error");
       return;
-
+    }
+    console.log("handleSendMessage called");
     const messageData = {
       content: message.trim(),
-      sender_id: userId,
+      sender_id: userIdFromAuth,
       receiver_id: privateRoomChatMateData.userId,
     };
 
@@ -206,7 +159,7 @@ let ChatBox = () => {
       </Box>
 
       <DmMessagesContainer sx={{ flex: 1 }}>
-        {currentRoomMessages.length > 0 ? ( // ✅ Use currentRoomMessages
+        {currentRoomMessages.length > 0 ? (
           renderMessages()
         ) : (
           <DmMessages
@@ -236,7 +189,7 @@ let ChatBox = () => {
             minWidth: "auto",
           }}
           variant="contained"
-          onClick={handleSendMessage} // ✅ Move onClick to Button, not just icon
+          onClick={handleSendMessage}
           endIcon={<SendIcon />}
         >
           Send
@@ -245,4 +198,5 @@ let ChatBox = () => {
     </Box>
   );
 };
+
 export default ChatBox;

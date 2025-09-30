@@ -23,7 +23,6 @@ export default function Chats() {
       }
     };
   }, []);
-  console.log(userId, username, avatar);
 
   return (
     <MsgSocketProvider>
