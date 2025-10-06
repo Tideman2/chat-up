@@ -54,7 +54,7 @@ let ChatBox = () => {
     const handleEntryToDmResponse = (data: any) => {
       let { roomId, messages, senderId, receiverId } = data;
       setCurrentRoomMessages(messages); // Update local state with messages
-      console.log("currentRoomId", roomId);
+      console.log("currentRoomId", messages);
       console.log(messages);
       if (data && roomId) {
         uiDispatch({
@@ -103,13 +103,12 @@ let ChatBox = () => {
     return () => {
       msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
       msgSocket.off("new_message", handleNewMessage);
+      // Reset messages when switching to a different chat
+      setCurrentRoomMessages([]);
     };
   }, [msgSocket, userIdFromAuth, privateRoomChatMateData.userId, uiDispatch]);
 
-  useEffect(() => {
-    // Reset messages when switching to a different chat
-    setCurrentRoomMessages([]);
-  }, [privateRoomChatMateData.userId]);
+  // useEffect(() => {}, [privateRoomChatMateData.userId]);
 
   // Render messages from context
   const renderMessages = () => {

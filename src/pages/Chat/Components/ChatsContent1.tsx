@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
 
 import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
@@ -6,6 +6,7 @@ import useAuth from "../../../hooks/useAuth";
 import useUsersCtx from "../../../hooks/useUsersCtx";
 import FriendsProfile from "../../../components/FriendsProfile";
 import { checkIfTokenHasExpired, BASEURL } from "../../../utils/api";
+import theme from "../../../config/theme";
 
 interface User {
   id: string;
@@ -74,13 +75,25 @@ let ChatsContent1 = () => {
 
   return (
     <Box>
-      <h3 style={{ marginLeft: "10px" }}>Friends</h3>
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          zIndex: 99,
+          width: "320px",
+          backgroundColor: (theme) => theme.palette.background.default,
+          padding: "16px",
+          borderBottom: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        Friends
+      </Box>
       <Box
         sx={{
           display: "flex",
-          rowGap: "20px",
           flexDirection: "column",
-          padding: "10px",
+          marginTop: "60px",
         }}
       >
         {isUsers &&

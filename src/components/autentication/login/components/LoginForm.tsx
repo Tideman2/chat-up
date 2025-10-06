@@ -25,10 +25,8 @@ export default function LoginForm() {
 
   const handleLoginSuccess = useCallback(
     (data: any) => {
-      console.log(data, "meee");
       if (data["status-code"] === 201) {
         // Store token in localStorage and set tokenExpiration time
-        console.log("we got here");
         const now = Date.now();
         const tokenExpirationTime = now + 1800 * 1000;
         localStorage.setItem(
