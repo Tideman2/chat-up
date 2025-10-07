@@ -68,12 +68,25 @@ export default function FriendsProfile({
       </Avatar>
       <Typography fontWeight={"bold"}>{dmName}</Typography>
       <Typography
-        fontSize={"12px"}
-        ml={"auto"}
-        bgcolor={"red"}
-        p={"5px"}
+        fontSize={"10px"}
+        minWidth={"20px"}
+        height={"20px"}
+        display={"flex"}
+        alignItems={"center"}
+        marginLeft={"auto"}
+        justifyContent={"center"}
+        bgcolor={"#ff4444"}
         color="white"
         borderRadius={"50%"}
+        fontWeight={"bold"}
+        sx={{
+          animation: "pulse 2s infinite",
+          "@keyframes pulse": {
+            "0%": { transform: "scale(1)" },
+            "50%": { transform: "scale(1.1)" },
+            "100%": { transform: "scale(1)" },
+          },
+        }}
       >
         23
       </Typography>
