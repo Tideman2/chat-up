@@ -11,6 +11,9 @@ let DmOwnerName = styled(Typography)(({ theme }) => {
   };
 });
 
+// This compoenet handles the showing of the current room owner profile info
+// Clicking on this component should bring up a modal with the user complete profile
+
 const DmOwnerProfile: React.FC = () => {
   let { state: uiState, dispatch: uiDispatch } = useUiCtx();
 

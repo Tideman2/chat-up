@@ -36,7 +36,6 @@ const Router = createBrowserRouter([
       },
     ],
   },
-
   {
     path: "/app",
     element: <DashBoardLayout />,

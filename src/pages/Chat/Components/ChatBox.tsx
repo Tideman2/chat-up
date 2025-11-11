@@ -1,10 +1,13 @@
 import { Box, styled, TextField, Button } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+
 import useAuth from "../../../hooks/useAuth";
 import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import DmOwnerProfile from "./DmOwnerProfile";
 import useUiCtx from "../../../hooks/useUiCtx";
+import useMessageSocket from "../../../hooks/socket/useMessageSocket";
+import { useNotificationSocket } from "../../../contexts/notificationSckCtx/NotificationSckCtx";
 
 interface Message {
   id: number;
@@ -34,55 +37,72 @@ let DmMessagesContainer = styled(Box)({
   padding: "10px",
 });
 
+// This component handles the showing of fetched messages and send messages
+// It handles registration of websocket listeners to handle fetching
+// and sending messages
+
 let ChatBox = () => {
   const { state: uiState, dispatch: uiDispatch } = useUiCtx();
   const { state: userState } = useAuth();
   const { state: socketState } = useMsgSocket(); // Get socket from context
   const { userId: userIdFromAuth, name: userNameFromAuth } = userState;
   const { privateRoomChatMateData, currentRoomId, messages } = uiState;
-  const msgSocket = socketState.socket; // Use context socket instead of hook
+  const notificationSocketCtx = useNotificationSocket();
+  const notificationSocket = notificationSocketCtx.state.socket;
+  const msgSocket = socketState.socket; // Use context socket
 
   const [currentRoomMessages, setCurrentRoomMessages] = useState<Message[]>([]);
   const [message, setMessage] = useState("");
+  //To have local data to use, still update context for dependent components
+  const [chatRoomId, setRoomId] = useState(null);
 
-  console.log(currentRoomId, "currentRoomId from uiState in ChatBox");
+  console.log(notificationSocket, "notification context");
   console.log(messages, "all messages from uiState in ChatBox");
+
+  const handleEntryToDmResponse = (
+    data: any,
+    uiDispatch: any,
+    privateRoomChatMateDataa: any
+  ) => {
+    console.log("Data given to entry to dm function : ", data);
+    let { roomId, messages, senderId, receiverId } = data;
+    console.log("I rannnnnm");
+    console.log("Entry to DM response received:", messages);
+    setCurrentRoomMessages(messages); // Update local state with messages
+    console.log("currentRoomId", roomId);
+    console.log(messages);
+    setRoomId(roomId); // Update local state with room id
+    if (data && roomId) {
+      uiDispatch({
+        type: "SET-CHATMATE",
+        payload: {
+          username: privateRoomChatMateData.username,
+          userId: Number(privateRoomChatMateData.userId),
+          roomId,
+        },
+      });
+      uiDispatch({
+        type: "SET_ROOM_MESSAGES",
+        payload: { roomId, messages },
+      });
+    }
+  };
+
+  const handleNewMessage = (data: any) => {
+    console.log("New message received:", data);
+    setCurrentRoomMessages((prevMessages) => [...prevMessages, data]);
+  };
 
   useEffect(() => {
     if (!msgSocket) return;
 
-    const handleEntryToDmResponse = (data: any) => {
-      let { roomId, messages, senderId, receiverId } = data;
-      setCurrentRoomMessages(messages); // Update local state with messages
-      console.log("currentRoomId", messages);
-      console.log(messages);
-      if (data && roomId) {
-        uiDispatch({
-          type: "SET-CHATMATE",
-          payload: {
-            username: privateRoomChatMateData.username,
-            userId: Number(privateRoomChatMateData.userId),
-            roomId,
-          },
-        });
-        uiDispatch({
-          type: "SET_ROOM_MESSAGES",
-          payload: { roomId, messages },
-        });
-      }
-    };
-
-    const handleNewMessage = (data: any) => {
-      console.log("New message received:", data);
-      setCurrentRoomMessages((prevMessages) => [...prevMessages, data]);
-      // if (roomId === currentRoomId) {
-      //   // setCurrentRoomMessages((prevMessages) => [...prevMessages, message]);
-      // }
-    };
+    const onEntryResponse = (data: any) =>
+      handleEntryToDmResponse(data, uiDispatch, privateRoomChatMateData);
+    const onNewMessage = (data: any) => handleNewMessage(data);
 
     // Register event listeners
-    msgSocket.on("entry_to_dm_response", handleEntryToDmResponse);
-    msgSocket.on("new_message", handleNewMessage);
+    msgSocket.on("entry_to_dm_response", onEntryResponse);
+    msgSocket.on("new_message", onNewMessage);
 
     // Emit event (only once)
     if (msgSocket.connected) {
@@ -101,14 +121,13 @@ let ChatBox = () => {
 
     // Cleanup
     return () => {
-      msgSocket.off("entry_to_dm_response", handleEntryToDmResponse);
-      msgSocket.off("new_message", handleNewMessage);
-      // Reset messages when switching to a different chat
+      msgSocket.off("entry_to_dm_response", onEntryResponse);
+      msgSocket.off("new_message", onNewMessage);
       setCurrentRoomMessages([]);
     };
   }, [msgSocket, userIdFromAuth, privateRoomChatMateData.userId, uiDispatch]);
 
-  // useEffect(() => {}, [privateRoomChatMateData.userId]);
+  console.log(chatRoomId, "chatRoomId from uiState in ChatBox");
 
   // Render messages from context
   const renderMessages = () => {
@@ -127,9 +146,26 @@ let ChatBox = () => {
     ));
   };
 
+  const handleEmitCreateNotification = () => {
+    if (!notificationSocket) {
+      console.log("handle called CreateNotification error");
+      return;
+    }
+
+    console.log("Create notification called");
+    let notification = {
+      senderId: userIdFromAuth,
+      recieverId: privateRoomChatMateData.userId,
+      roomId: chatRoomId,
+    };
+
+    notificationSocket.emit("create_notification", notification);
+    console.log("emited");
+  };
+
   const handleSendMessage = () => {
     if (!msgSocket || !message.trim()) {
-      console.log("handleSendMessage called error");
+      console.log("handle SendMessage called error");
       return;
     }
     console.log("handleSendMessage called");
@@ -141,6 +177,7 @@ let ChatBox = () => {
 
     console.log("Sending message:", messageData);
     msgSocket.emit("private_message", messageData);
+    handleEmitCreateNotification();
     setMessage("");
   };
 

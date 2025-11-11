@@ -1,16 +1,16 @@
 import { Box, Avatar, Typography } from "@mui/material";
 import { useEffect, useState, useCallback } from "react";
-import { Socket } from "socket.io-client";
 
-import useMessageSocket from "../hooks/socket/useMessageSocket";
-import useAuth from "../hooks/useAuth";
 import useUiCtx from "../hooks/useUiCtx";
-import theme from "../config/theme";
+import { useNotificationSocket } from "../contexts/notificationSckCtx/NotificationSckCtx";
 
 type ChatBoxProps = {
   userName: string;
   userId: string;
 };
+
+// This component handles the updating of the chatroom to the clicked component
+// it basically handles the chatRoom view
 
 export default function FriendsProfile({
   userName: dmName,
@@ -19,6 +19,32 @@ export default function FriendsProfile({
   let { state: uiState, dispatch: uiDispatch } = useUiCtx();
   let { isChatRoomActive, privateRoomChatMateData } = uiState;
   let { username } = privateRoomChatMateData;
+  let notificationSocketCtx = useNotificationSocket();
+  let notificationSocket = notificationSocketCtx.state.socket;
+  let [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    if (!notificationSocket) return;
+    //function to handle new nohtifications and check them against Friends Id
+    //handles real time update of notification badge
+    function onNewNotifications(data: any) {
+      if (privateRoomChatMateData.roomId) {
+        if (
+          privateRoomChatMateData.roomId !== data.roomId &&
+          data.senderId === userId
+        ) {
+          setNotificationCount((prev) => prev + 1);
+        }
+      }
+      console.log(data, "Notification from FreiendsProfile component");
+    }
+    notificationSocket.on("new_message_notification", onNewNotifications);
+
+    return () => {
+      setNotificationCount(0);
+      notificationSocket.off("new_message_notification", onNewNotifications);
+    };
+  }, [privateRoomChatMateData, userId, notificationSocket]);
 
   function onFriendProfileClick() {
     uiDispatch({
@@ -29,6 +55,7 @@ export default function FriendsProfile({
         roomId: null,
       },
     });
+
     // Only show chat room if it's hidden
     if (!isChatRoomActive) {
       uiDispatch({ type: "TOGGLE-CHATROOM" });
@@ -67,29 +94,31 @@ export default function FriendsProfile({
         U-S
       </Avatar>
       <Typography fontWeight={"bold"}>{dmName}</Typography>
-      <Typography
-        fontSize={"10px"}
-        minWidth={"20px"}
-        height={"20px"}
-        display={"flex"}
-        alignItems={"center"}
-        marginLeft={"auto"}
-        justifyContent={"center"}
-        bgcolor={"#ff4444"}
-        color="white"
-        borderRadius={"50%"}
-        fontWeight={"bold"}
-        sx={{
-          animation: "pulse 2s infinite",
-          "@keyframes pulse": {
-            "0%": { transform: "scale(1)" },
-            "50%": { transform: "scale(1.1)" },
-            "100%": { transform: "scale(1)" },
-          },
-        }}
-      >
-        23
-      </Typography>
+      {notificationCount > 0 && (
+        <Typography
+          fontSize={"10px"}
+          minWidth={"20px"}
+          height={"20px"}
+          display={"flex"}
+          alignItems={"center"}
+          marginLeft={"auto"}
+          justifyContent={"center"}
+          bgcolor={"#ff4444"}
+          color="white"
+          borderRadius={"50%"}
+          fontWeight={"bold"}
+          sx={{
+            animation: "pulse 2s infinite",
+            "@keyframes pulse": {
+              "0%": { transform: "scale(1)" },
+              "50%": { transform: "scale(1.1)" },
+              "100%": { transform: "scale(1)" },
+            },
+          }}
+        >
+          {notificationCount}
+        </Typography>
+      )}
     </Box>
   );
 }

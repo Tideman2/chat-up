@@ -8,12 +8,6 @@ type MessageType = {
   receiver_id?: number;
 };
 
-type privateRoomMateData = {
-  roomOwnerName: string;
-  roomOwnerId: number;
-  avatar?: string;
-};
-
 export type uiDefaultValue = {
   isChatRoomActive: boolean;
   currentRoomId: number | null; // ACTIVE ROOM ID FOR CHATBOX
@@ -60,10 +54,6 @@ export type uiActionTypes =
       type: "SET_CURRENT_ROOM";
       payload: number | null; // SET ACTIVE ROOM ID
     };
-// | {
-//     type: "SET_ROOMS_LIST";
-//     payload: privateRoomMateData;
-//   };
 
 export type uiContextType = {
   state: uiDefaultValue;

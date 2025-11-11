@@ -1,5 +1,7 @@
 export let BASEURL = "http://127.0.0.1:5000";
 
+//Check if token has expired
+//Get new token
 export let checkIfTokenHasExpired = async (name: string, userId: string) => {
   let url = BASEURL + "/auth/get_token";
   let userData = { username: name, userId: String(userId) };

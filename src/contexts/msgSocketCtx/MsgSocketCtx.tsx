@@ -56,6 +56,7 @@ export const MsgSocketProvider = ({
 // hook
 export const useMsgSocket = () => {
   const msgCtx = useContext(SocketContext);
-  if (!msgCtx) throw new Error("useSocket must be used inside SocketProvider");
+  if (!msgCtx)
+    throw new Error("useMsgSocket must be used inside SocketProvider");
   return msgCtx;
 };

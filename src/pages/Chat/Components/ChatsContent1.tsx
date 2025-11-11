@@ -6,6 +6,7 @@ import useAuth from "../../../hooks/useAuth";
 import useUsersCtx from "../../../hooks/useUsersCtx";
 import FriendsProfile from "../../../components/FriendsProfile";
 import { checkIfTokenHasExpired, BASEURL } from "../../../utils/api";
+import { useNotificationSocket } from "../../../contexts/notificationSckCtx/NotificationSckCtx";
 import theme from "../../../config/theme";
 
 interface User {
@@ -20,8 +21,10 @@ let ChatsContent1 = () => {
   let { state: authState } = useAuth();
   let { dispatch: usersDispatch } = useUsersCtx();
   const { state: socketState } = useMsgSocket();
+  const notificationSocketCtx = useNotificationSocket();
   let { name, userId } = authState;
   const msgSocket = socketState.socket;
+  const notificationSocket = notificationSocketCtx.state.socket;
 
   function removeCurrentUserFromUsersList(users: User[]) {
     return users.filter((user) => user.id !== userId);
@@ -31,7 +34,6 @@ let ChatsContent1 = () => {
     //fetch users to show as chat mate
     //Add users to context
     async function fecthAllUsers() {
-      console.log(authState.name, authState.userId);
       try {
         checkIfTokenHasExpired(name, userId);
         let url = BASEURL + "/user/get_users";
@@ -59,6 +61,7 @@ let ChatsContent1 = () => {
         });
 
         setUsers(data);
+        return data;
       } catch (err) {
         console.log(err);
       }
@@ -66,9 +69,22 @@ let ChatsContent1 = () => {
     []
   );
 
-  //useEffect to fetch users and setup socket listeners
+  //useEffect to fetch users on component mount
   useEffect(() => {
-    handleFectchUsers();
+    // Run fetch users and adds notification socket connection to necessery rooms
+    const run = async () => {
+      if (!notificationSocket) return;
+      let usersData = await handleFectchUsers();
+      for (let users in usersData) {
+        let receiverId = usersData[users].id;
+        console.log(userId, receiverId);
+        notificationSocket.emit("notifications_room", {
+          senderId: userId,
+          receiverId,
+        });
+      }
+    };
+    run();
   }, [handleFectchUsers]);
 
   let isUsers = users.length > 0;

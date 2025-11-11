@@ -1,4 +1,5 @@
 import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
 import { Grid, styled, Stack, Divider, Box } from "@mui/material";
 
 import ChatIcon from "@mui/icons-material/Chat";
@@ -7,8 +8,11 @@ import UpdateOutlinedIcon from "@mui/icons-material/UpdateOutlined";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import StarBorderOutlinedIcon from "@mui/icons-material/StarBorderOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import { useNotificationSocket } from "../../contexts/notificationSckCtx/NotificationSckCtx";
+import { useNotification } from "../../contexts/notificationContext/NotificationCtx";
 
 import DashBoardLink from "./components/DashBoardLink";
+import { BASEURL } from "../../utils/api";
 
 let DashBoardRoot = styled(Grid)(({ theme }) => {
   return {
@@ -20,6 +24,57 @@ let DashBoardRoot = styled(Grid)(({ theme }) => {
 });
 
 export default function DashBoardLayout() {
+  let { state: notificationSoc } = useNotificationSocket();
+  let { state: notificationState, dispatch: notificationDispatch } =
+    useNotification();
+  let notificationSocket = notificationSoc.socket;
+
+  useEffect(() => {
+    if (!notificationSocket) return;
+
+    const fetchUnreadMessages = async () => {
+      const url = BASEURL + "/notifications/get_unread_notifications";
+      const accessToken = localStorage.getItem("accessToken");
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Unread notifications:", data);
+        return data;
+      } else {
+        console.error("Failed to fetch unread notifications");
+      }
+    };
+
+    let handleTestSockett = () => {
+      console.log("socket test ran");
+    };
+
+    console.log("I ran");
+    notificationSocket.emit("tests_socket", handleTestSockett);
+
+    //here we will fetch all unread messages
+    //Add them to the notification context so all consumers can react to it
+    const run = async () => {
+      const data = await fetchUnreadMessages();
+      if (data?.length > 0) {
+        notificationDispatch({
+          type: "ADD-NOTIFICATIONS",
+          payload: data.notifications,
+        });
+      }
+    };
+
+    run();
+  }, []);
+
   return (
     <DashBoardRoot container>
       <Grid
