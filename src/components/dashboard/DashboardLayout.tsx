@@ -64,6 +64,7 @@ export default function DashBoardLayout() {
     //Add them to the notification context so all consumers can react to it
     const run = async () => {
       const data = await fetchUnreadMessages();
+
       if (data?.length > 0) {
         notificationDispatch({
           type: "ADD-NOTIFICATIONS",

@@ -2,6 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import Input from "../../components/Input";
 import StyledLink from "../../components/StyledLink";
@@ -13,6 +14,8 @@ type FormData = {
 };
 
 export default function LoginForm() {
+  // Access the client
+  const queryClient = useQueryClient();
   const {
     handleSubmit,
     control,
@@ -25,49 +28,56 @@ export default function LoginForm() {
 
   const handleLoginSuccess = useCallback(
     (data: any) => {
-      if (data["status-code"] === 201) {
-        // Store token in localStorage and set tokenExpiration time
-        const now = Date.now();
-        const tokenExpirationTime = now + 1800 * 1000;
-        localStorage.setItem(
-          "tokenExpiresIn",
-          JSON.stringify(tokenExpirationTime)
-        );
-        localStorage.setItem("accessToken", data["access-token"]);
+      console.log(data);
+      // Store token in localStorage and set tokenExpiration time
+      const now = Date.now();
+      const tokenExpirationTime = now + 1800 * 1000;
+      localStorage.setItem(
+        "tokenExpiresIn",
+        JSON.stringify(tokenExpirationTime)
+      );
+      localStorage.setItem("accessToken", data["access-token"]);
 
-        // prepare user data and add to context
-        let { id: userId, username: name, email } = data["user-info"];
-        let userCredentials = { userId, name, email };
-        if (setUser) {
-          setUser(userCredentials);
-        }
-
-        // redirect user to app
-        navigate("/app");
-      } else {
-        setError("Invalid login credentials");
+      // prepare user data and add to query and context for now.
+      let { id: userId, username: name, email } = data["user-info"];
+      let userCredentials = { userId, name, email };
+      queryClient.setQueryData(["currentUser"], userCredentials);
+      if (setUser) {
+        setUser(userCredentials);
       }
+      // redirect user to app
+      navigate("/app");
     },
     [navigate, setUser]
   );
 
-  const onSubmit: SubmitHandler<FormData> = async (formData) => {
-    try {
+  //re-writing to use react query
+  const onSubmit: SubmitHandler<FormData> = (formData) => {
+    createUserMutate.mutate(formData);
+  };
+
+  //login and add users key to query keys
+  const createUserMutate = useMutation({
+    mutationFn: async (userData: FormData) => {
       const response = await fetch("http://127.0.0.1:5000/auth/login", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userData),
       });
 
-      const data = await response.json();
-      handleLoginSuccess(data);
-    } catch (err: any) {
-      console.error("Login error:", err);
-      setError("An error occurred while logging in.");
-    }
-  };
+      if (!response.ok) {
+        throw new Error(`Login failed: ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      handleLoginSuccess(data); // ← data from mutation comes here
+    },
+    onError: (error) => {
+      console.error("Login error:", error);
+      setError(error.message);
+    },
+  });
 
   return (
     <Box
@@ -108,7 +118,7 @@ export default function LoginForm() {
 
       <Box>
         <Button variant="contained" type="submit">
-          Login
+          {createUserMutate.isPending ? "logging" : "log in"}
         </Button>
         <StyledLink to="/authentication/sign-up">Sign Up</StyledLink>
         <StyledLink to="/authentication/reset-password" replace>
