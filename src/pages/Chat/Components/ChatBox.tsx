@@ -1,7 +1,8 @@
 import { Box, styled, TextField, Button } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
-import React, { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 
+import useCurrentUser from "../../../contexts/react-query/useCurrentUser";
 import useAuth from "../../../hooks/useAuth";
 import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import DmOwnerProfile from "./DmOwnerProfile";
@@ -45,7 +46,7 @@ let ChatBox = () => {
   const { state: uiState, dispatch: uiDispatch } = useUiCtx();
   const { state: userState } = useAuth();
   const { state: socketState } = useMsgSocket(); // Get socket from context
-  const { userId: userIdFromAuth, name: userNameFromAuth } = userState;
+  // const { userId: userIdFromAuth, name: userNameFromAuth } = userState;
   const { privateRoomChatMateData, currentRoomId, messages } = uiState;
   const notificationSocketCtx = useNotificationSocket();
   const notificationSocket = notificationSocketCtx.state.socket;
@@ -55,6 +56,9 @@ let ChatBox = () => {
   const [message, setMessage] = useState("");
   //To have local data to use, still update context for dependent components
   const [chatRoomId, setRoomId] = useState(null);
+  // react query custom hook
+  const { data: currentUser, isLoading, error } = useCurrentUser();
+  console.log(currentUser);
 
   console.log(notificationSocket, "notification context");
   console.log(messages, "all messages from uiState in ChatBox");
@@ -66,8 +70,8 @@ let ChatBox = () => {
   ) => {
     console.log("Data given to entry to dm function : ", data);
     let { roomId, messages, senderId, receiverId } = data;
-    console.log("I rannnnnm");
     console.log("Entry to DM response received:", messages);
+
     setCurrentRoomMessages(messages); // Update local state with messages
     console.log("currentRoomId", roomId);
     console.log(messages);
@@ -107,13 +111,15 @@ let ChatBox = () => {
     // Emit event (only once)
     if (msgSocket.connected) {
       msgSocket.emit("entry_to_private_dm", {
-        userId: userIdFromAuth,
+        // userId: userIdFromAuth,
+        userId: currentUser?.userId,
         receiverId: privateRoomChatMateData.userId,
       });
     } else {
       msgSocket.once("connect", () => {
         msgSocket.emit("entry_to_private_dm", {
-          userId: userIdFromAuth,
+          // userId: userIdFromAuth,
+          userId: currentUser?.userId,
           receiverId: privateRoomChatMateData.userId,
         });
       });
@@ -125,7 +131,7 @@ let ChatBox = () => {
       msgSocket.off("new_message", onNewMessage);
       setCurrentRoomMessages([]);
     };
-  }, [msgSocket, userIdFromAuth, privateRoomChatMateData.userId, uiDispatch]);
+  }, [msgSocket, currentUser, privateRoomChatMateData.userId, uiDispatch]);
 
   console.log(chatRoomId, "chatRoomId from uiState in ChatBox");
 
@@ -136,7 +142,7 @@ let ChatBox = () => {
         key={index}
         sx={{
           marginLeft:
-            message.sender_id === Number(userIdFromAuth) ? "auto" : "0",
+            message.sender_id === Number(currentUser?.userId) ? "auto" : "0",
           marginTop: "15px",
           marginBottom: "15px",
         }}
@@ -154,7 +160,8 @@ let ChatBox = () => {
 
     console.log("Create notification called");
     let notification = {
-      senderId: userIdFromAuth,
+      // senderId: userIdFromAuth,
+      senderId: currentUser?.userId,
       recieverId: privateRoomChatMateData.userId,
       roomId: chatRoomId,
     };
@@ -171,7 +178,8 @@ let ChatBox = () => {
     console.log("handleSendMessage called");
     const messageData = {
       content: message.trim(),
-      sender_id: userIdFromAuth,
+      // sender_id: userIdFromAuth,
+      senderId: currentUser?.userId,
       receiver_id: privateRoomChatMateData.userId,
     };
 

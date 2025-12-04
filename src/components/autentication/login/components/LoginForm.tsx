@@ -40,7 +40,7 @@ export default function LoginForm() {
 
       // prepare user data and add to query and context for now.
       let { id: userId, username: name, email } = data["user-info"];
-      let userCredentials = { userId, name, email };
+      let userCredentials = { userId, name, email, isAutenticated: true };
       queryClient.setQueryData(["currentUser"], userCredentials);
       if (setUser) {
         setUser(userCredentials);

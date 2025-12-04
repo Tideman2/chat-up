@@ -1,13 +1,14 @@
 import { Box, Typography } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
+import useCurrentUser from "../../../contexts/react-query/useCurrentUser";
 import { useMsgSocket } from "../../../contexts/msgSocketCtx/MsgSocketCtx";
 import useAuth from "../../../hooks/useAuth";
 import useUsersCtx from "../../../hooks/useUsersCtx";
 import FriendsProfile from "../../../components/FriendsProfile";
 import { checkIfTokenHasExpired, BASEURL } from "../../../utils/api";
 import { useNotificationSocket } from "../../../contexts/notificationSckCtx/NotificationSckCtx";
-import theme from "../../../config/theme";
 
 interface User {
   id: string;
@@ -17,25 +18,28 @@ interface User {
 
 // this component will house all friends that can be messaged
 let ChatsContent1 = () => {
-  let [users, setUsers] = useState<User[]>([]);
+  // let [users, setUsers] = useState<User[]>([]);
   let { state: authState } = useAuth();
   let { dispatch: usersDispatch } = useUsersCtx();
   const { state: socketState } = useMsgSocket();
   const notificationSocketCtx = useNotificationSocket();
-  let { name, userId } = authState;
-  const msgSocket = socketState.socket;
+  //let { name, userId } = authState;
+  // const msgSocket = socketState.socket;
   const notificationSocket = notificationSocketCtx.state.socket;
+  const { data: currentUser } = useCurrentUser();
 
   function removeCurrentUserFromUsersList(users: User[]) {
-    return users.filter((user) => user.id !== userId);
+    return users.filter((user) => user.id !== currentUser?.userId);
   }
 
-  let handleFectchUsers = useCallback(
+  const handleFectchUsers = useCallback(
     //fetch users to show as chat mate
     //Add users to context
     async function fecthAllUsers() {
       try {
-        checkIfTokenHasExpired(name, userId);
+        let name = currentUser?.name;
+        let userId = currentUser?.userId;
+        checkIfTokenHasExpired(name as string, userId as string);
         let url = BASEURL + "/user/get_users";
         let accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
@@ -60,7 +64,7 @@ let ChatsContent1 = () => {
           payload: data,
         });
 
-        setUsers(data);
+        // setUsers(data);
         return data;
       } catch (err) {
         console.log(err);
@@ -69,24 +73,35 @@ let ChatsContent1 = () => {
     []
   );
 
+  //refactor to use react-query
+  const { data: users } = useQuery<User[]>({
+    queryKey: ["users", "list"],
+    queryFn: handleFectchUsers,
+  });
+
+  console.log("Users from query", users);
+
   //useEffect to fetch users on component mount
   useEffect(() => {
-    // Run fetch users and adds notification socket connection to necessery rooms
+    // Run adds notification socket connection to necessery rooms
     const run = async () => {
       if (!notificationSocket) return;
-      let usersData = await handleFectchUsers();
-      for (let users in usersData) {
-        let receiverId = usersData[users].id;
-        console.log(userId, receiverId);
-        notificationSocket.emit("notifications_room", {
-          senderId: userId,
-          receiverId,
-        });
+      // let usersData = await handleFectchUsers();
+      if (users) {
+        for (let user in users) {
+          let receiverId = users[user].id;
+          notificationSocket.emit("notifications_room", {
+            // senderId: userId,
+            senderId: currentUser?.userId,
+            receiverId,
+          });
+        }
       }
     };
     run();
-  }, [handleFectchUsers]);
+  }, [currentUser]);
 
+  if (!users) return;
   let isUsers = users.length > 0;
 
   return (
@@ -113,7 +128,7 @@ let ChatsContent1 = () => {
         }}
       >
         {isUsers &&
-          users.map((user) => {
+          users?.map((user) => {
             return (
               <FriendsProfile
                 key={user.id}

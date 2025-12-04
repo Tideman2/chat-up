@@ -1,5 +1,5 @@
-import { useEffect, useContext } from "react";
-import { io } from "socket.io-client";
+import { useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import { MsgSocketProvider } from "../../contexts/msgSocketCtx/MsgSocketCtx";
 import useUiCtx from "../../hooks/useUiCtx";
@@ -12,7 +12,6 @@ export default function Chats() {
   let { state, dispatch } = useUiCtx();
   let { isChatRoomActive, privateRoomChatMateData } = state;
   let { userId, username, avatar } = privateRoomChatMateData;
-  // let { users } = useContext(UserContext);
 
   useEffect(() => {
     return () => {
