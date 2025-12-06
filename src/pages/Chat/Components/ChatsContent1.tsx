@@ -1,5 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { useState, useCallback, useEffect } from "react";
+import { replace, useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import useCurrentUser from "../../../contexts/react-query/useCurrentUser";
@@ -27,6 +28,12 @@ let ChatsContent1 = () => {
   // const msgSocket = socketState.socket;
   const notificationSocket = notificationSocketCtx.state.socket;
   const { data: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  //Invalidate so react-query can refetch currentUser
+  if (!currentUser)
+    queryClient.invalidateQueries({ queryKey: ["currentUser"] });
 
   function removeCurrentUserFromUsersList(users: User[]) {
     return users.filter((user) => user.id !== currentUser?.userId);
@@ -39,7 +46,18 @@ let ChatsContent1 = () => {
       try {
         let name = currentUser?.name;
         let userId = currentUser?.userId;
-        checkIfTokenHasExpired(name as string, userId as string);
+        let flagToContinue = await checkIfTokenHasExpired(
+          name as string,
+          userId as string
+        );
+
+        //flag to know if user entry data cannot be recovered.
+        console.log(flagToContinue, "flag");
+        if (!flagToContinue) {
+          // Redirect to login
+          navigate("/", { replace: true });
+        }
+
         let url = BASEURL + "/user/get_users";
         let accessToken = localStorage.getItem("accessToken");
         if (!accessToken) {
@@ -79,14 +97,12 @@ let ChatsContent1 = () => {
     queryFn: handleFectchUsers,
   });
 
-  console.log("Users from query", users);
-
   //useEffect to fetch users on component mount
   useEffect(() => {
     // Run adds notification socket connection to necessery rooms
     const run = async () => {
       if (!notificationSocket) return;
-      // let usersData = await handleFectchUsers();
+
       if (users) {
         for (let user in users) {
           let receiverId = users[user].id;

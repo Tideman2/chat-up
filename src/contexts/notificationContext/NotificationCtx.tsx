@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, ReactNode } from "react";
 
-type NotificationType = {
+export type NotificationType = {
   id: Number;
   senderId: string;
   recieverId: string;
@@ -9,7 +9,7 @@ type NotificationType = {
   timeStamp?: any;
 };
 
-type NotificationCtxType = {
+export type NotificationCtxType = {
   notifications: NotificationType[];
 };
 

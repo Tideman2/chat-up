@@ -2,7 +2,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import Input from "../../components/Input";
 import StyledLink from "../../components/StyledLink";
@@ -41,6 +41,8 @@ export default function LoginForm() {
       // prepare user data and add to query and context for now.
       let { id: userId, username: name, email } = data["user-info"];
       let userCredentials = { userId, name, email, isAutenticated: true };
+      let userDetails = { userId, name };
+      localStorage.setItem("userDetails", JSON.stringify(userDetails));
       queryClient.setQueryData(["currentUser"], userCredentials);
       if (setUser) {
         setUser(userCredentials);
@@ -71,7 +73,7 @@ export default function LoginForm() {
       return response.json();
     },
     onSuccess: (data) => {
-      handleLoginSuccess(data); // ← data from mutation comes here
+      handleLoginSuccess(data);
     },
     onError: (error) => {
       console.error("Login error:", error);

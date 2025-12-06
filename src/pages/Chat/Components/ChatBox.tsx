@@ -58,29 +58,21 @@ let ChatBox = () => {
   const [chatRoomId, setRoomId] = useState(null);
   // react query custom hook
   const { data: currentUser, isLoading, error } = useCurrentUser();
-  console.log(currentUser);
-
-  console.log(notificationSocket, "notification context");
-  console.log(messages, "all messages from uiState in ChatBox");
 
   const handleEntryToDmResponse = (
     data: any,
     uiDispatch: any,
     privateRoomChatMateDataa: any
   ) => {
-    console.log("Data given to entry to dm function : ", data);
     let { roomId, messages, senderId, receiverId } = data;
-    console.log("Entry to DM response received:", messages);
 
     setCurrentRoomMessages(messages); // Update local state with messages
-    console.log("currentRoomId", roomId);
-    console.log(messages);
     setRoomId(roomId); // Update local state with room id
     if (data && roomId) {
       uiDispatch({
         type: "SET-CHATMATE",
         payload: {
-          username: privateRoomChatMateData.username,
+          username: currentUser?.name,
           userId: Number(privateRoomChatMateData.userId),
           roomId,
         },
@@ -93,7 +85,6 @@ let ChatBox = () => {
   };
 
   const handleNewMessage = (data: any) => {
-    console.log("New message received:", data);
     setCurrentRoomMessages((prevMessages) => [...prevMessages, data]);
   };
 
@@ -133,8 +124,6 @@ let ChatBox = () => {
     };
   }, [msgSocket, currentUser, privateRoomChatMateData.userId, uiDispatch]);
 
-  console.log(chatRoomId, "chatRoomId from uiState in ChatBox");
-
   // Render messages from context
   const renderMessages = () => {
     return currentRoomMessages.map((message, index) => (
@@ -154,11 +143,10 @@ let ChatBox = () => {
 
   const handleEmitCreateNotification = () => {
     if (!notificationSocket) {
-      console.log("handle called CreateNotification error");
+      console.error("handle called CreateNotification error");
       return;
     }
 
-    console.log("Create notification called");
     let notification = {
       // senderId: userIdFromAuth,
       senderId: currentUser?.userId,
@@ -172,10 +160,10 @@ let ChatBox = () => {
 
   const handleSendMessage = () => {
     if (!msgSocket || !message.trim()) {
-      console.log("handle SendMessage called error");
+      console.error("handle SendMessage called error");
       return;
     }
-    console.log("handleSendMessage called");
+
     const messageData = {
       content: message.trim(),
       // sender_id: userIdFromAuth,
@@ -183,7 +171,6 @@ let ChatBox = () => {
       receiver_id: privateRoomChatMateData.userId,
     };
 
-    console.log("Sending message:", messageData);
     msgSocket.emit("private_message", messageData);
     handleEmitCreateNotification();
     setMessage("");

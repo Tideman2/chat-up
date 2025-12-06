@@ -1,5 +1,6 @@
 import { Box, Avatar, Typography } from "@mui/material";
 import { useEffect, useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import useUiCtx from "../hooks/useUiCtx";
 import { useNotificationSocket } from "../contexts/notificationSckCtx/NotificationSckCtx";

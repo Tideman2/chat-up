@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useEffect } from "react";
 import { Grid, styled, Stack, Divider, Box } from "@mui/material";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 
 import ChatIcon from "@mui/icons-material/Chat";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
@@ -9,7 +10,11 @@ import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import StarBorderOutlinedIcon from "@mui/icons-material/StarBorderOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { useNotificationSocket } from "../../contexts/notificationSckCtx/NotificationSckCtx";
-import { useNotification } from "../../contexts/notificationContext/NotificationCtx";
+import {
+  useNotification,
+  NotificationType,
+  NotificationCtxType,
+} from "../../contexts/notificationContext/NotificationCtx";
 
 import DashBoardLink from "./components/DashBoardLink";
 import { BASEURL } from "../../utils/api";
@@ -29,29 +34,29 @@ export default function DashBoardLayout() {
     useNotification();
   let notificationSocket = notificationSoc.socket;
 
+  const fetchUnreadMessages = async () => {
+    const url = BASEURL + "/notifications/get_unread_notifications";
+    const accessToken = localStorage.getItem("accessToken");
+
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Unread notifications:", data);
+      return data;
+    } else {
+      console.error("Failed to fetch unread notifications");
+    }
+  };
+
   useEffect(() => {
     if (!notificationSocket) return;
-
-    const fetchUnreadMessages = async () => {
-      const url = BASEURL + "/notifications/get_unread_notifications";
-      const accessToken = localStorage.getItem("accessToken");
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Unread notifications:", data);
-        return data;
-      } else {
-        console.error("Failed to fetch unread notifications");
-      }
-    };
 
     let handleTestSockett = () => {
       console.log("socket test ran");
@@ -75,6 +80,10 @@ export default function DashBoardLayout() {
 
     run();
   }, []);
+
+  //Refactoring to use React-query
+  //Here we fetch users unread notifications so other components like
+  //Friends profile can react to it to highlight that friends profile with the number of notifications
 
   return (
     <DashBoardRoot container>
