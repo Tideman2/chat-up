@@ -163,14 +163,14 @@ let ChatBox = () => {
       console.error("handle SendMessage called error");
       return;
     }
-
+    console.log("messgae just sent", message.trim());
     const messageData = {
       content: message.trim(),
       // sender_id: userIdFromAuth,
-      senderId: currentUser?.userId,
+      sender_id: currentUser?.userId,
       receiver_id: privateRoomChatMateData.userId,
     };
-
+    console.log("current userId", currentUser?.userId);
     msgSocket.emit("private_message", messageData);
     handleEmitCreateNotification();
     setMessage("");
