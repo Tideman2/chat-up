@@ -1,9 +1,11 @@
 import { Box, Avatar, Typography } from "@mui/material";
 import { useEffect, useState, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import useUiCtx from "../hooks/useUiCtx";
 import { useNotificationSocket } from "../contexts/notificationSckCtx/NotificationSckCtx";
+import { NotificationType } from "../contexts/react-query/useUserNotification";
+import useUserNotification from "../contexts/react-query/useUserNotification";
 
 type ChatBoxProps = {
   userName: string;
@@ -17,37 +19,27 @@ export default function FriendsProfile({
   userName: dmName,
   userId,
 }: ChatBoxProps) {
+  let { state: notificationSoc } = useNotificationSocket();
+  let notificationSocket = notificationSoc.socket;
   let { state: uiState, dispatch: uiDispatch } = useUiCtx();
   let { isChatRoomActive, privateRoomChatMateData } = uiState;
   let { username } = privateRoomChatMateData;
-  let notificationSocketCtx = useNotificationSocket();
-  let notificationSocket = notificationSocketCtx.state.socket;
-  let [notificationCount, setNotificationCount] = useState(0);
+  const queryClient = useQueryClient();
+  // Use the hook to get unread notifications
+  const { data: notificationData } = useUserNotification();
 
-  useEffect(() => {
-    if (!notificationSocket) return;
-    //function to handle new nohtifications and check them against Friends Id
-    //handles real time update of notification badge
-    function onNewNotifications(data: any) {
-      if (privateRoomChatMateData.roomId) {
-        if (
-          privateRoomChatMateData.roomId !== data.roomId &&
-          data.senderId === userId
-        ) {
-          setNotificationCount((prev) => prev + 1);
-        }
-      }
-      console.log(data, "Notification from FreiendsProfile component");
-    }
-    notificationSocket.on("new_message_notification", onNewNotifications);
+  // filter unread notifications
+  const unreadNotifications: NotificationType[] =
+    notificationData?.notifications?.filter(
+      (notification) =>
+        notification.senderId === Number(userId) && !notification.isRead
+    ) || [];
 
-    return () => {
-      setNotificationCount(0);
-      notificationSocket.off("new_message_notification", onNewNotifications);
-    };
-  }, [privateRoomChatMateData, userId, notificationSocket]);
+  console.log(unreadNotifications.length, "unread notifications length");
 
   function onFriendProfileClick() {
+    console.log("friend profile clicked:", dmName, userId);
+    console.log("i raaannnn after click");
     uiDispatch({
       type: "SET-CHATMATE",
       payload: {
@@ -56,6 +48,18 @@ export default function FriendsProfile({
         roomId: null,
       },
     });
+
+    //set unread notifications as read
+    if (notificationSocket) {
+      unreadNotifications.forEach((notification) => {
+        console.log(notification.isRead, "notification read status");
+        notificationSocket.emit("set_notification_as_read", {
+          notificationId: notification.id,
+        });
+      });
+    }
+    // Invalidate the query to refetch unread notifications
+    queryClient.invalidateQueries({ queryKey: ["userNotifications"] });
 
     // Only show chat room if it's hidden
     if (!isChatRoomActive) {
@@ -95,7 +99,7 @@ export default function FriendsProfile({
         U-S
       </Avatar>
       <Typography fontWeight={"bold"}>{dmName}</Typography>
-      {notificationCount > 0 && (
+      {unreadNotifications?.length > 0 && (
         <Typography
           fontSize={"10px"}
           minWidth={"20px"}
@@ -112,12 +116,12 @@ export default function FriendsProfile({
             animation: "pulse 2s infinite",
             "@keyframes pulse": {
               "0%": { transform: "scale(1)" },
-              "50%": { transform: "scale(1.1)" },
+              "50%": { transform: "scale(1.3)" },
               "100%": { transform: "scale(1)" },
             },
           }}
         >
-          {notificationCount}
+          {unreadNotifications.length}
         </Typography>
       )}
     </Box>

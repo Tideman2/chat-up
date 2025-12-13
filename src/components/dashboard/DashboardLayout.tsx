@@ -1,7 +1,7 @@
 import { Outlet } from "react-router-dom";
 import { useEffect } from "react";
 import { Grid, styled, Stack, Divider, Box } from "@mui/material";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 import ChatIcon from "@mui/icons-material/Chat";
 import PhoneOutlinedIcon from "@mui/icons-material/PhoneOutlined";
@@ -33,27 +33,7 @@ export default function DashBoardLayout() {
   let { state: notificationState, dispatch: notificationDispatch } =
     useNotification();
   let notificationSocket = notificationSoc.socket;
-
-  const fetchUnreadMessages = async () => {
-    const url = BASEURL + "/notifications/get_unread_notifications";
-    const accessToken = localStorage.getItem("accessToken");
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log("Unread notifications:", data);
-      return data;
-    } else {
-      console.error("Failed to fetch unread notifications");
-    }
-  };
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     if (!notificationSocket) return;
@@ -65,25 +45,19 @@ export default function DashBoardLayout() {
     console.log("I ran");
     notificationSocket.emit("tests_socket", handleTestSockett);
 
-    //here we will fetch all unread messages
-    //Add them to the notification context so all consumers can react to it
-    const run = async () => {
-      const data = await fetchUnreadMessages();
-
-      if (data?.length > 0) {
-        notificationDispatch({
-          type: "ADD-NOTIFICATIONS",
-          payload: data.notifications,
-        });
-      }
+    // Set up listener for new notifications
+    const handleNewNotification = () => {
+      // Invalidate the query to refetch unread notifications
+      console.log("new notification received");
+      queryClient.invalidateQueries({ queryKey: ["userNotifications"] });
     };
 
-    run();
-  }, []);
+    notificationSocket.on("new_message_notification", handleNewNotification);
 
-  //Refactoring to use React-query
-  //Here we fetch users unread notifications so other components like
-  //Friends profile can react to it to highlight that friends profile with the number of notifications
+    return () => {
+      notificationSocket.off("new_message_notification", handleNewNotification);
+    };
+  }, [notificationSocket, queryClient]);
 
   return (
     <DashBoardRoot container>

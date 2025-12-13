@@ -52,9 +52,6 @@ export const checkIfTokenHasExpired = async (
       console.log("Token is still valid");
       return true;
     }
-
-    console.log("Token has expired, refreshing...");
-
     // Token expired, get new one
     const userData = { username: name, userId: String(userId) };
     const response = await fetch(url, {
@@ -67,7 +64,6 @@ export const checkIfTokenHasExpired = async (
 
     if (response.status === 200) {
       const data = await response.json();
-      console.log("New Token received", data);
 
       if (data["access-token"]) {
         // Save the new token

@@ -72,7 +72,7 @@ let ChatBox = () => {
       uiDispatch({
         type: "SET-CHATMATE",
         payload: {
-          username: currentUser?.name,
+          username: privateRoomChatMateDataa.username,
           userId: Number(privateRoomChatMateData.userId),
           roomId,
         },
