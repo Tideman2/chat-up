@@ -41,7 +41,7 @@ const useUserNotification = () => {
   }, []);
 
   return useQuery<NotificationQueryType>({
-    queryKey: ["userNotificatons"],
+    queryKey: ["userNotifications"],
     queryFn: fetchUserUnreadNotifictions,
     staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,

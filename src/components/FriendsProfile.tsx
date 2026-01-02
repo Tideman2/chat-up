@@ -27,7 +27,6 @@ export default function FriendsProfile({
   const queryClient = useQueryClient();
   // Use the hook to get unread notifications
   const { data: notificationData } = useUserNotification();
-
   // filter unread notifications
   const unreadNotifications: NotificationType[] =
     notificationData?.notifications?.filter(
@@ -35,11 +34,10 @@ export default function FriendsProfile({
         notification.senderId === Number(userId) && !notification.isRead
     ) || [];
 
-  console.log(unreadNotifications.length, "unread notifications length");
-
   function onFriendProfileClick() {
     console.log("friend profile clicked:", dmName, userId);
     console.log("i raaannnn after click");
+    console.log("unread notifications:", unreadNotifications);
     uiDispatch({
       type: "SET-CHATMATE",
       payload: {
@@ -99,7 +97,7 @@ export default function FriendsProfile({
         U-S
       </Avatar>
       <Typography fontWeight={"bold"}>{dmName}</Typography>
-      {unreadNotifications?.length > 0 && (
+      {unreadNotifications?.length > 0 ? (
         <Typography
           fontSize={"10px"}
           minWidth={"20px"}
@@ -123,7 +121,7 @@ export default function FriendsProfile({
         >
           {unreadNotifications.length}
         </Typography>
-      )}
+      ) : null}
     </Box>
   );
 }
